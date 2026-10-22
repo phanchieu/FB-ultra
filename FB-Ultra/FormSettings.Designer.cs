@@ -115,6 +115,15 @@
             cb_luotNewsfeed_nuoiNickAI = new CheckBox();
             btn_save = new Button();
             btn_cancel = new Button();
+            cb_dungAI_tuDongDangBaiVaoNhom = new CheckBox();
+            tb_apiAI_tuDongDangBaiVaoNhom = new TextBox();
+            label15 = new Label();
+            label26 = new Label();
+            label32 = new Label();
+            rtb_sysContent_tuDongDangBaiVaoNhom = new RichTextBox();
+            rtb_userContent_tuDongDangBaiVaoNhom = new RichTextBox();
+            btn_testCap = new Button();
+            rtb_testCap_tuDongDangBaiVaoNhom = new RichTextBox();
             groupBox2.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
@@ -654,6 +663,15 @@
             // 
             // groupBox4
             // 
+            groupBox4.Controls.Add(rtb_testCap_tuDongDangBaiVaoNhom);
+            groupBox4.Controls.Add(btn_testCap);
+            groupBox4.Controls.Add(rtb_userContent_tuDongDangBaiVaoNhom);
+            groupBox4.Controls.Add(rtb_sysContent_tuDongDangBaiVaoNhom);
+            groupBox4.Controls.Add(label32);
+            groupBox4.Controls.Add(label26);
+            groupBox4.Controls.Add(tb_apiAI_tuDongDangBaiVaoNhom);
+            groupBox4.Controls.Add(label15);
+            groupBox4.Controls.Add(cb_dungAI_tuDongDangBaiVaoNhom);
             groupBox4.Controls.Add(tb_noiDungDangBai_tuDongDangBaiVaoNhom);
             groupBox4.Controls.Add(rdo_dangBaiAnDanh_tuDongDangBaiVaoNhom);
             groupBox4.Controls.Add(rdo_dangBaiThuong_tuDongDangBaiVaoNhom);
@@ -666,7 +684,7 @@
             groupBox4.Controls.Add(label6);
             groupBox4.Location = new Point(12, 211);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(457, 348);
+            groupBox4.Size = new Size(457, 556);
             groupBox4.TabIndex = 4;
             groupBox4.TabStop = false;
             groupBox4.Text = "Tự đăng bài spam vào nhóm";
@@ -968,7 +986,7 @@
             // 
             // btn_save
             // 
-            btn_save.Location = new Point(839, 569);
+            btn_save.Location = new Point(837, 730);
             btn_save.Name = "btn_save";
             btn_save.Size = new Size(89, 37);
             btn_save.TabIndex = 7;
@@ -978,7 +996,7 @@
             // 
             // btn_cancel
             // 
-            btn_cancel.Location = new Point(937, 569);
+            btn_cancel.Location = new Point(937, 730);
             btn_cancel.Name = "btn_cancel";
             btn_cancel.Size = new Size(89, 37);
             btn_cancel.TabIndex = 8;
@@ -986,11 +1004,88 @@
             btn_cancel.UseVisualStyleBackColor = true;
             btn_cancel.Click += btn_cancel_Click;
             // 
+            // cb_dungAI_tuDongDangBaiVaoNhom
+            // 
+            cb_dungAI_tuDongDangBaiVaoNhom.AutoSize = true;
+            cb_dungAI_tuDongDangBaiVaoNhom.Location = new Point(6, 348);
+            cb_dungAI_tuDongDangBaiVaoNhom.Name = "cb_dungAI_tuDongDangBaiVaoNhom";
+            cb_dungAI_tuDongDangBaiVaoNhom.Size = new Size(69, 19);
+            cb_dungAI_tuDongDangBaiVaoNhom.TabIndex = 18;
+            cb_dungAI_tuDongDangBaiVaoNhom.Text = "Dùng AI";
+            cb_dungAI_tuDongDangBaiVaoNhom.UseVisualStyleBackColor = true;
+            // 
+            // tb_apiAI_tuDongDangBaiVaoNhom
+            // 
+            tb_apiAI_tuDongDangBaiVaoNhom.Location = new Point(159, 346);
+            tb_apiAI_tuDongDangBaiVaoNhom.Name = "tb_apiAI_tuDongDangBaiVaoNhom";
+            tb_apiAI_tuDongDangBaiVaoNhom.Size = new Size(288, 23);
+            tb_apiAI_tuDongDangBaiVaoNhom.TabIndex = 20;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(114, 351);
+            label15.Name = "label15";
+            label15.Size = new Size(42, 15);
+            label15.TabIndex = 19;
+            label15.Text = "API AI:";
+            // 
+            // label26
+            // 
+            label26.AutoSize = true;
+            label26.Location = new Point(6, 380);
+            label26.Name = "label26";
+            label26.Size = new Size(27, 15);
+            label26.TabIndex = 21;
+            label26.Text = "Sys:";
+            // 
+            // label32
+            // 
+            label32.AutoSize = true;
+            label32.Location = new Point(6, 434);
+            label32.Name = "label32";
+            label32.Size = new Size(33, 15);
+            label32.TabIndex = 22;
+            label32.Text = "User:";
+            // 
+            // rtb_sysContent_tuDongDangBaiVaoNhom
+            // 
+            rtb_sysContent_tuDongDangBaiVaoNhom.Location = new Point(51, 380);
+            rtb_sysContent_tuDongDangBaiVaoNhom.Name = "rtb_sysContent_tuDongDangBaiVaoNhom";
+            rtb_sysContent_tuDongDangBaiVaoNhom.Size = new Size(399, 46);
+            rtb_sysContent_tuDongDangBaiVaoNhom.TabIndex = 23;
+            rtb_sysContent_tuDongDangBaiVaoNhom.Text = "";
+            // 
+            // rtb_userContent_tuDongDangBaiVaoNhom
+            // 
+            rtb_userContent_tuDongDangBaiVaoNhom.Location = new Point(51, 434);
+            rtb_userContent_tuDongDangBaiVaoNhom.Name = "rtb_userContent_tuDongDangBaiVaoNhom";
+            rtb_userContent_tuDongDangBaiVaoNhom.Size = new Size(399, 56);
+            rtb_userContent_tuDongDangBaiVaoNhom.TabIndex = 24;
+            rtb_userContent_tuDongDangBaiVaoNhom.Text = "";
+            // 
+            // btn_testCap
+            // 
+            btn_testCap.Location = new Point(10, 502);
+            btn_testCap.Name = "btn_testCap";
+            btn_testCap.Size = new Size(75, 48);
+            btn_testCap.TabIndex = 25;
+            btn_testCap.Text = "Test Cap";
+            btn_testCap.UseVisualStyleBackColor = true;
+            // 
+            // rtb_testCap_tuDongDangBaiVaoNhom
+            // 
+            rtb_testCap_tuDongDangBaiVaoNhom.Location = new Point(95, 497);
+            rtb_testCap_tuDongDangBaiVaoNhom.Name = "rtb_testCap_tuDongDangBaiVaoNhom";
+            rtb_testCap_tuDongDangBaiVaoNhom.Size = new Size(352, 53);
+            rtb_testCap_tuDongDangBaiVaoNhom.TabIndex = 26;
+            rtb_testCap_tuDongDangBaiVaoNhom.Text = "";
+            // 
             // FormSettings
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1035, 618);
+            ClientSize = new Size(1035, 779);
             Controls.Add(btn_cancel);
             Controls.Add(btn_save);
             Controls.Add(groupBox5);
@@ -1105,5 +1200,14 @@
         private CheckBox cb_nuoiNickNgauNhien_caiDatChung;
         private CheckBox cb_ketBanTheoGoiY_nuoiNick;
         private TextBox tb_noiDungDangBai_tuDongDangBaiVaoNhom;
+        private Button btn_testCap;
+        private RichTextBox rtb_userContent_tuDongDangBaiVaoNhom;
+        private RichTextBox rtb_sysContent_tuDongDangBaiVaoNhom;
+        private Label label32;
+        private Label label26;
+        private TextBox tb_apiAI_tuDongDangBaiVaoNhom;
+        private Label label15;
+        private CheckBox cb_dungAI_tuDongDangBaiVaoNhom;
+        private RichTextBox rtb_testCap_tuDongDangBaiVaoNhom;
     }
 }

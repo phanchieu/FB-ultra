@@ -49,6 +49,13 @@ namespace FB_Ultra
         public string LinkFileAnh { get; set; } = "";
         public string DelayDangBai { get; set; } = "";
         public string DanhSachLinkNhomSpam { get; set; } = "";
+        public bool DungAi_TuDongDangBai { get; set; } = false;                  // Checkbox Dùng AI
+        public string ApiAI_TuDongDangBai { get; set; } = "";          // Ô ST (System Role)
+        public string AiSystemPrompt_TuDongDangBai { get; set; } = "";          // Ô ST (System Role)
+        public string AiUserPrompt_TuDongDangBai { get; set; } = "";            // Ô User (Content)
+        public string TestCapResult_TuDongDangBai { get; set; } = "";           // Ô kết quả Test cap
+
+
 
         // Tự động vào nhóm
         public string DanhSachLinkVaoNhom { get; set; } = "";
