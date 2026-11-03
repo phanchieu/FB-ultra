@@ -105,7 +105,7 @@
             // cbo_AccountFormat
             // 
             cbo_AccountFormat.FormattingEnabled = true;
-            cbo_AccountFormat.Items.AddRange(new object[] { "UID | Pass | 2fa | Mail | PassMail | Cookie | Token", "UID | Password | Cookie | Email | Pass Email", "UID | Pass | Cookie | Token", "UID | Pass | 2FA | Cookie | Token", "UID | Pass | 2FA | Cookie | Token | Mail | PassMail | RefreshToken | ClientID | Name" });
+            cbo_AccountFormat.Items.AddRange(new object[] { "UID | Pass | 2fa | Mail | PassMail | Cookie | Token", "UID | Password | Cookie | Email | Pass Email", "UID | Pass | Cookie | Token", "UID | Pass | 2FA | Cookie | Token", "UID | Pass | 2FA | Cookie | Token | Mail | PassMail | RefreshToken | ClientID | Name", "UID | Pass | Cookie | Token | Extra | JsonInfo (Chứa Mail & PassMail)" });
             cbo_AccountFormat.Location = new Point(6, 25);
             cbo_AccountFormat.Name = "cbo_AccountFormat";
             cbo_AccountFormat.Size = new Size(438, 23);

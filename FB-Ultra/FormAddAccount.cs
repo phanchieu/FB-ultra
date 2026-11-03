@@ -106,8 +106,32 @@ namespace FB_Ultra
 
                 // --- PARSE CHUỖI LINH HOẠT THEO COMBOBOX ---
 
-                // DẠNG 5 (MỚI VIA FULL): UID | Pass | 2FA | Cookie | Token | Mail | PassMail
-                if (selectedFormatText.Contains("2fa|cookie|token|mail") || cbo_AccountFormat.SelectedIndex == 4)
+                // DẠNG 6 (MỚI): UID | Pass | Cookie | Token | Extra | JsonInfo (Index 5)
+                if (selectedFormatText.Contains("jsoninfo") || cbo_AccountFormat.SelectedIndex == 5)
+                {
+                    pass = parts.Length > 1 ? parts[1] : "";
+                    cookie = parts.Length > 2 ? parts[2] : "";
+                    token = parts.Length > 3 ? parts[3] : "";
+                    // parts[4] là Extra (bỏ qua hoặc không dùng đến)
+
+                    string jsonInfo = parts.Length > 5 ? parts[5] : "";
+                    if (!string.IsNullOrEmpty(jsonInfo) && jsonInfo.Contains("{"))
+                    {
+                        try
+                        {
+                            string cleanJson = jsonInfo.Replace("'", "\"");
+                            var mailObj = JsonConvert.DeserializeObject<Dictionary<string, string>>(cleanJson);
+                            if (mailObj != null)
+                            {
+                                if (mailObj.ContainsKey("email")) mail = mailObj["email"];
+                                if (mailObj.ContainsKey("password")) passMail = mailObj["password"];
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                // DẠNG 5: UID | Pass | 2FA | Cookie | Token | Mail | PassMail (Index 4)
+                else if (selectedFormatText.Contains("2fa|cookie|token|mail") || cbo_AccountFormat.SelectedIndex == 4)
                 {
                     pass = parts.Length > 1 ? parts[1] : "";
                     twoFa = parts.Length > 2 ? parts[2] : "";
@@ -116,7 +140,7 @@ namespace FB_Ultra
                     mail = parts.Length > 5 ? parts[5] : "";
                     passMail = parts.Length > 6 ? parts[6] : "";
                 }
-                // DẠNG 4: UID | Pass | 2FA | Cookie | Token
+                // DẠNG 4: UID | Pass | 2FA | Cookie | Token (Index 3)
                 else if (selectedFormatText.Contains("2fa|cookie|token") || cbo_AccountFormat.SelectedIndex == 3)
                 {
                     pass = parts.Length > 1 ? parts[1] : "";
@@ -124,14 +148,14 @@ namespace FB_Ultra
                     cookie = parts.Length > 3 ? parts[3] : "";
                     token = parts.Length > 4 ? parts[4] : "";
                 }
-                // DẠNG 3: UID | Pass | Cookie | Token
+                // DẠNG 3: UID | Pass | Cookie | Token (Index 2)
                 else if (selectedFormatText.Contains("cookie|token") || cbo_AccountFormat.SelectedIndex == 2)
                 {
                     pass = parts.Length > 1 ? parts[1] : "";
                     cookie = parts.Length > 2 ? parts[2] : "";
                     token = parts.Length > 3 ? parts[3] : "";
                 }
-                // DẠNG 2: UID | Pass | Cookie | Mail | PassMail
+                // DẠNG 2: UID | Pass | Cookie | Mail | PassMail (Index 1)
                 else if (selectedFormatText.Contains("cookie|mail") || cbo_AccountFormat.SelectedIndex == 1)
                 {
                     pass = parts.Length > 1 ? parts[1] : "";
@@ -139,7 +163,7 @@ namespace FB_Ultra
                     mail = parts.Length > 3 ? parts[3] : "";
                     passMail = parts.Length > 4 ? parts[4] : "";
                 }
-                // DẠNG 1: Mặc định (UID | Pass | 2FA | Mail | PassMail | Cookie | Token)
+                // DẠNG 1: Mặc định (Index 0)
                 else
                 {
                     pass = parts.Length > 1 ? parts[1] : "";
@@ -148,6 +172,25 @@ namespace FB_Ultra
                     passMail = parts.Length > 4 ? parts[4] : "";
                     cookie = parts.Length > 5 ? parts[5] : "";
                     token = parts.Length > 6 ? parts[6] : "";
+                }
+
+                // --- XỬ LÝ TỰ ĐỘNG BÓC TÁCH NẾU TRƯỜNG MAIL LÀ CHUỖI JSON ---
+                if (!string.IsNullOrEmpty(mail) && mail.Contains("{"))
+                {
+                    try
+                    {
+                        string cleanJson = mail.Replace("'", "\"");
+                        var mailObj = JsonConvert.DeserializeObject<Dictionary<string, string>>(cleanJson);
+                        if (mailObj != null)
+                        {
+                            if (mailObj.ContainsKey("email")) mail = mailObj["email"];
+                            if (mailObj.ContainsKey("password")) passMail = mailObj["password"];
+                        }
+                    }
+                    catch
+                    {
+                        // Bỏ qua nếu parse thất bại
+                    }
                 }
 
                 // Lấy ngẫu nhiên 1 User-Agent nếu có danh sách
