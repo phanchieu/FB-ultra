@@ -14,7 +14,7 @@ namespace FB_Ultra
         public string ThoiGianTaiTrang { get; set; } = "";
         public string DelayClickMin { get; set; } = "";
         public string DelayClickMax { get; set; } = "";
-
+        public string HenGio { get; set; } = "0";
         public bool IsNuoiThuong { get; set; } = true;
         public bool IsNuoiAI { get; set; } = false;
         public bool ChanTaiHinhAnh { get; set; } = false;

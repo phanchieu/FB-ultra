@@ -60,7 +60,7 @@
             btn_setting = new Button();
             btn_addAcc = new Button();
             btn_editAcc = new Button();
-            btn_openAuto = new Button();
+            btn_other = new Button();
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
             btn_clearRam = new Button();
@@ -254,7 +254,7 @@
             flowLayoutPanel1.Controls.Add(btn_setting);
             flowLayoutPanel1.Controls.Add(btn_addAcc);
             flowLayoutPanel1.Controls.Add(btn_editAcc);
-            flowLayoutPanel1.Controls.Add(btn_openAuto);
+            flowLayoutPanel1.Controls.Add(btn_other);
             flowLayoutPanel1.Location = new Point(4, 18);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(788, 50);
@@ -310,14 +310,15 @@
             btn_editAcc.UseVisualStyleBackColor = true;
             btn_editAcc.Click += btn_editAcc_Click;
             // 
-            // btn_openAuto
+            // btn_other
             // 
-            btn_openAuto.Location = new Point(658, 3);
-            btn_openAuto.Name = "btn_openAuto";
-            btn_openAuto.Size = new Size(124, 45);
-            btn_openAuto.TabIndex = 1;
-            btn_openAuto.Text = "Khác";
-            btn_openAuto.UseVisualStyleBackColor = true;
+            btn_other.Location = new Point(658, 3);
+            btn_other.Name = "btn_other";
+            btn_other.Size = new Size(124, 45);
+            btn_other.TabIndex = 1;
+            btn_other.Text = "Khác";
+            btn_other.UseVisualStyleBackColor = true;
+            btn_other.Click += btn_other_Click;
             // 
             // groupBox1
             // 
@@ -327,7 +328,7 @@
             groupBox1.Size = new Size(792, 74);
             groupBox1.TabIndex = 7;
             groupBox1.TabStop = false;
-            groupBox1.Text = "Chức Năng Chính";
+            groupBox1.Text = "Chức Năng Chính:";
             // 
             // groupBox2
             // 
@@ -484,7 +485,7 @@
         private DataGridView dgv_accounts;
         private FlowLayoutPanel flowLayoutPanel1;
         private Button btn_openChrome;
-        private Button btn_openAuto;
+        private Button btn_other;
         private Button btn_addAcc;
         private Button btn_setting;
         private Button btn_stop;

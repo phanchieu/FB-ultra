@@ -13,12 +13,14 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace FB_Ultra
 {
-    
+
     public partial class Main : Form
     {
         // --- KHAI BÁO WIN32 API ĐỂ ẨN CONSOLE VÀ KÍCH HOẠT CỬA SỔ CHROME ---
@@ -190,14 +192,54 @@ namespace FB_Ultra
             int maxThreads = int.TryParse(settings.SoLuong, out int s) && s > 0 ? s : 2;
             int openDelaySec = int.TryParse(settings.ThoiGianMoLuong, out int d) && d >= 0 ? d : 5;
 
-            // === TÍCH HỢP: NẾU CÓ CHỌN NUÔI NICK CHẠY NGẪU NHIÊN THÌ TRỘN DANH SÁCH ===
+            // Lấy thời gian hẹn giờ từ setting (số phút)
+            int henGioMinutes = int.TryParse(settings.HenGio.ToString(), out int hg) && hg > 0 ? hg : 0;
+
+            cts = new CancellationTokenSource();
+            btn_openChrome.Enabled = false;
+
+            try
+            {
+                // === 1. ĐOẠN HẸN GIỜ CHỜ TRƯỚC KHI CHẠY (ĐẶT NGAY ĐẦU HÀM) ===
+                if (henGioMinutes > 0)
+                {
+                    int totalSeconds = henGioMinutes * 60; // Đã sửa lỗi thiếu dấu nhân ở đây
+                    for (int sec = totalSeconds; sec > 0; sec--)
+                    {
+                        cts.Token.ThrowIfCancellationRequested();
+
+                        int mins = sec / 60;
+                        int se = sec % 60;
+                        string timeStr = mins > 0 ? $"{mins}p {se:D2}s" : $"{se}s";
+
+                        groupBox1.Text = $"Chức năng chính: hẹn giờ chạy {timeStr}";
+
+                        await Task.Delay(1000, cts.Token);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Người dùng bấm nút Stop trong lúc đang đếm ngược hẹn giờ
+                groupBox1.Text = "Chức năng chính:";
+                btn_openChrome.Enabled = true; // Phải bật lại nút bấm ở đây để không bị liệt
+                return; // Dừng luôn, không chạy tiếp phần dưới
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi hẹn giờ: {ex.Message}");
+                groupBox1.Text = "Chức năng chính:";
+                btn_openChrome.Enabled = true;
+                return;
+            }
+
+            groupBox1.Text = "Chức năng chính:";
+
+            // === 2. SAU KHI HẾT GIỜ HẸN, TIẾN HÀNH CHẠY LUỒNG CHÍNH ===
             if (settings.NuoiNickNgauNhien)
             {
                 selectedAccounts.Shuffle();
             }
-
-            cts = new CancellationTokenSource();
-            btn_openChrome.Enabled = false;
 
             // Sử dụng SemaphoreSlim để giới hạn số luồng chạy đồng thời đúng bằng maxThreads
             using (SemaphoreSlim semaphore = new SemaphoreSlim(maxThreads, maxThreads))
@@ -264,15 +306,11 @@ namespace FB_Ultra
                 }
                 catch (OperationCanceledException)
                 {
-                    // Xử lý khi tiến trình bị hủy toàn cục
+                    // Xử lý khi tiến trình bị hủy toàn cục trong lúc đang chạy acc
                 }
             }
 
             btn_openChrome.Enabled = true;
-            if (!cts.Token.IsCancellationRequested)
-            {
-                //MessageBox.Show("Đã hoàn tất tiến trình!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
         }
         private void RunSingleAccount(AccountModel acc, CancellationToken token)
         {
@@ -353,6 +391,9 @@ namespace FB_Ultra
                 service.HideCommandPromptWindow = true;
 
                 // 2. Cấu hình ChromeOptions cho Ungoogled Chromium
+                int currentProfileSeed = 0;
+                int savedSeed = 0;
+                string profileSeedFile = string.Empty;
                 var options = new ChromeOptions();
                 options.BinaryLocation = chromiumExePath;
                 options.AddArgument($"--user-data-dir={profileFolder}");
@@ -365,7 +406,21 @@ namespace FB_Ultra
                     {
                         if (proxyInfo.HasAuth)
                         {
-                            string extFolder = ProxyHelper.CreateProxyExtension(proxyInfo);
+                            // Chỉ gán giá trị, không khai báo lại kiểu dữ liệu (int, string) nữa
+                            profileSeedFile = Path.Combine(profileFolder, "canvas_seed.txt");
+                            if (File.Exists(profileSeedFile) && int.TryParse(File.ReadAllText(profileSeedFile), out savedSeed))
+                            {
+                                currentProfileSeed = savedSeed;
+                            }
+                            else
+                            {
+                                currentProfileSeed = new Random().Next(1000, 9999);
+                                File.WriteAllText(profileSeedFile, currentProfileSeed.ToString());
+                            }
+
+                            Console.WriteLine($"[CHECK SEED] Profile Folder: {profileFolder} ==> Seed: {currentProfileSeed}");
+
+                            string extFolder = ProxyHelper.CreateProxyExtension(proxyInfo, currentProfileSeed);
                             string fullExtPath = Path.GetFullPath(extFolder);
 
                             options.AddArgument($"--load-extension={fullExtPath}");
@@ -377,7 +432,6 @@ namespace FB_Ultra
                         }
                     }
                 }
-
                 // Gán User-Agent chuẩn
                 string userAgentToUse = !string.IsNullOrWhiteSpace(acc.UserAgent)
                     ? acc.UserAgent
@@ -403,6 +457,9 @@ namespace FB_Ultra
                 options.AddExcludedArgument("enable-automation");
                 options.AddAdditionalOption("useAutomationExtension", false);
                 options.AddArgument("--ignore-certificate-errors");
+                options.AddArgument("--disable-dev-shm-usage");
+                options.AddArgument("--no-sandbox");
+                options.AddArgument("--disable-gpu");
 
                 // Preference sửa lỗi Crash Window
                 options.AddUserProfilePreference("profile.exit_type", "Normal");
@@ -410,11 +467,58 @@ namespace FB_Ultra
                 options.AddUserProfilePreference("session.restore_on_startup", 4);
                 options.AddUserProfilePreference("startup_urls", new string[] { "about:blank" });
 
+                options.AddArgument("--use-fake-ui-for-media-stream"); // Tự động cho phép truy cập media, bỏ qua popup hỏi quyền
                 options.PageLoadStrategy = PageLoadStrategy.Eager;
 
                 token.ThrowIfCancellationRequested();
                 // 3. Khởi chạy Driver
                 driver = new ChromeDriver(service, options, TimeSpan.FromMinutes(3));
+
+                // Đọc hoặc tạo seed riêng cho profile này ngay tại chỗ
+                currentProfileSeed = 1234;
+                string seedFile = Path.Combine(profileFolder, "canvas_seed.txt");
+                if (File.Exists(seedFile) && int.TryParse(File.ReadAllText(seedFile), out savedSeed))
+                {
+                    currentProfileSeed = savedSeed;
+                }
+                // Random chọn một thông số GPU giả lập dựa theo profileSeed
+                string[] fakeRenderers = {
+                    "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)",
+                    "ANGLE (NVIDIA, NVIDIA GeForce GTX 1060 6GB Direct3D11 vs_5_0 ps_5_0, D3D11)",
+                    "ANGLE (AMD Radeon RX 580 Direct3D11 vs_5_0 ps_5_0, D3D11)",
+                    "ANGLE (Intel, Intel(R) Iris(R) Xe Graphics Direct3D11 vs_5_0 ps_5_0, D3D11)"
+                };
+                string selectedRenderer = fakeRenderers[currentProfileSeed % fakeRenderers.Length];
+
+                string webGLSpoofScript = $@"
+                (function() {{
+                    const fakeRenderer = '{selectedRenderer}';
+    
+                    // Override WebGL getParameter để che giấu GPU thật
+                    const getParameter = WebGLRenderingContext.prototype.getParameter;
+                    WebGLRenderingContext.prototype.getParameter = function(parameter) {{
+                        // UNMASKED_VENDOR_WEBGL
+                        if (parameter === 37445) return 'Google Inc. (NVIDIA)';
+                        // UNMASKED_RENDERER_WEBGL
+                        if (parameter === 37446) return fakeRenderer;
+                        return getParameter.apply(this, arguments);
+                    }};
+
+                    // Làm tương tự cho WebGL2
+                    const getParameter2 = WebGL2RenderingContext.prototype.getParameter;
+                    WebGL2RenderingContext.prototype.getParameter = function(parameter) {{
+                        if (parameter === 37445) return 'Google Inc. (NVIDIA)';
+                        if (parameter === 37446) return fakeRenderer;
+                        return getParameter2.apply(this, arguments);
+                            }};
+                        }})();
+                    ";
+
+                // Bơm trực tiếp qua CDP sau khi khởi tạo driver
+                driver.ExecuteCdpCommand("Page.addScriptToEvaluateOnNewDocument", new Dictionary<string, object>
+                {
+                    { "source", webGLSpoofScript }
+                });
 
                 // 4. Quét ẩn các cửa sổ CMD dư thừa
                 HideDriverConsoles();
@@ -458,8 +562,16 @@ namespace FB_Ultra
             }
             catch (Exception ex)
             {
-                UpdateAccountStatus(acc.User, "Lỗi khởi chạy");
-                MessageBox.Show($"Lỗi acc {acc.User}: {ex.Message}", "Lỗi Runtime", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Kiểm tra nếu lỗi do tắt Chrome thủ công hoặc mất kết nối DevTools
+                if (ex.Message.Contains("session deleted") || ex.Message.Contains("not connected to DevTools") || ex.Message.Contains("invalid session id"))
+                {
+                    UpdateAccountStatus(acc.User, "Đã đóng thủ công");
+                }
+                else
+                {
+                    UpdateAccountStatus(acc.User, "Lỗi khởi chạy");
+                    MessageBox.Show($"Lỗi acc {acc.User}: {ex.Message}", "Lỗi Runtime", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             finally
             {
@@ -473,7 +585,12 @@ namespace FB_Ultra
         private void RunAccountAutomationPipeline(ChromeDriver driver, AccountModel acc, SettingsModel cfg, CancellationToken token)
         {
             if (cfg.IsMoThuong) return;
-
+            if (driver.Url.Contains("/checkpoint/"))
+            {
+                UpdateAccountStatus(acc.User, "Bị Checkpoint! Cần xử lý thủ công.");
+                // Lưu lại trạng thái hoặc dừng luồng của account này tại đây
+                return;
+            }
             // ----------------------------------------------------------------------------------
             // CHẾ ĐỘ 1: MỞ TỰ ĐỘNG (Thực thi các nhiệm vụ riêng lẻ khi chọn "Mở tự động")
             // ----------------------------------------------------------------------------------
@@ -620,7 +737,6 @@ namespace FB_Ultra
                 }
                 UpdateAccountStatus(acc.User, "Hoàn tất phiên nuôi nick");
             }
-                //if (!cfg.IsMoThuong) { CloseChromeDriver(driver); }
         }
         public void PerformReaction(ChromeDriver driver, SettingsModel cfg)
         {
@@ -645,48 +761,6 @@ namespace FB_Ultra
             {
                 // Bắt lỗi ngầm để không làm chết luồng nuôi
                 System.Diagnostics.Debug.WriteLine($"Lỗi thả cảm xúc: {ex.Message}");
-            }
-        }
-
-        // Hàm phụ trợ: Chọn ngẫu nhiên loại cảm xúc dựa trên cấu hình checkbox trên UI
-        private string GetChosenReactionType(SettingsModel cfg, Random rnd)
-        {
-            // Tạo một danh sách chứa các loại cảm xúc mà người dùng ĐÃ TÍCH CHỌN trên UI
-            List<string> activeReactions = new List<string>();
-
-            if (cfg.Like) activeReactions.Add("Like");
-            if (cfg.Tim) activeReactions.Add("Love");
-            if (cfg.Haha) activeReactions.Add("Haha");
-            if (cfg.Sad) activeReactions.Add("Sad");
-
-            // Nếu người dùng bật "Thả cảm xúc ngẫu nhiên" hoặc quên không tích ô nào cả thì dùng toàn bộ tập hợp phổ biến
-            if (cfg.ThaCamXucNgauNhien || activeReactions.Count == 0)
-            {
-                activeReactions.AddRange(new string[] { "Like", "Love", "Care", "Haha", "Wow", "Sad" });
-            }
-
-            // Bốc ngẫu nhiên 1 loại trong các cái đã được tích chọn
-            int index = rnd.Next(activeReactions.Count);
-            return activeReactions[index];
-        }
-
-        // Hàm phụ trợ: Trả về XPath tương ứng với icon cảm xúc trên giao diện Facebook tiếng Việt / Anh
-        private string GetReactionXPath(string type)
-        {
-            switch (type)
-            {
-                case "Love":
-                    return "//div[@aria-label='Yêu thích' or @aria-label='Love']";
-                case "Care":
-                    return "//div[@aria-label='Thương thương' or @aria-label='Care']";
-                case "Haha":
-                    return "//div[@aria-label='Haha']";
-                case "Wow":
-                    return "//div[@aria-label='Wow']";
-                case "Sad":
-                    return "//div[@aria-label='Buồn' or @aria-label='Sad']";
-                default:
-                    return "//div[@aria-label='Thích' or @aria-label='Like']";
             }
         }
         public bool PerformAcceptFriends(ChromeDriver driver, SettingsModel cfg, AccountModel acc)
@@ -938,7 +1012,7 @@ namespace FB_Ultra
                 try { driver.Navigate().GoToUrl("https://www.facebook.com/"); } catch { }
             }
         }
-        public void PerformPostGroupsByLink(ChromeDriver driver, SettingsModel cfg, AccountModel acc, CancellationToken token)
+        public async void PerformPostGroupsByLink(ChromeDriver driver, SettingsModel cfg, AccountModel acc, CancellationToken token)
         {
             try
             {
@@ -978,6 +1052,71 @@ namespace FB_Ultra
 
                     int currentNumber = i + 1;
 
+                    if (captionIndex >= captions.Length)
+                    {
+                        captionIndex = 0;
+                    }
+                    string currentCaption = captions[captionIndex].Trim();
+                    captionIndex++;
+
+                    // ==========================================
+                    // 👉 TÍCH HỢP AI REWRITE (DỰA TRÊN FILE SETTING)
+                    // ==========================================
+                    string finalCaption = currentCaption;
+                    if (cfg.DungAi_TuDongDangBai)
+                    {
+                        var aiService = new AiService();
+                        string apiUrl = cfg.ApiAI_TuDongDangBai;
+                        string sysPrompt = cfg.AiSystemPrompt_TuDongDangBai;
+
+                        // Bắn AI chạy ngầm bằng Task.Run (không dùng await ở đây)
+                        var aiTask = Task.Run(() => aiService.CallAiRewriteAsync(apiUrl, sysPrompt, currentCaption, "qwen2.5:3b"));
+
+                        bool aiCompleted = false;
+
+                        // Vòng lặp đếm giây từ 0 đến 30 cập nhật lên cột trạng thái
+                        for (int sec = 0; sec <= 60; sec++)
+                        {
+                            UpdateAccountStatus(acc.User, $"Nhóm ({currentNumber}/{totalGroups}): Đang chờ AI... {sec}/60s");
+
+                            // Kiểm tra mỗi giây xem task AI đã hoàn thành chưa
+                            if (aiTask.IsCompleted)
+                            {
+                                aiCompleted = true;
+                                break;
+                            }
+
+                            // Chờ 1 giây (có bắt exception token để thoát nếu dừng luồng ngang)
+                            try { Task.Delay(1000, token).Wait(token); } catch { break; }
+                        }
+
+                        if (aiCompleted)
+                        {
+                            try
+                            {
+                                // Lấy kết quả vì task đã chạy xong
+                                string aiResult = await aiTask;
+                                if (!string.IsNullOrEmpty(aiResult) && !aiResult.StartsWith("[Lỗi]") && !aiResult.StartsWith("[Không]"))
+                                {
+                                    finalCaption = aiResult;
+                                    UpdateAccountStatus(acc.User, "AI viết lại nội dung thành công.");
+                                }
+                                else
+                                {
+                                    UpdateAccountStatus(acc.User, "AI phản hồi lỗi -> Dùng nội dung gốc.");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                UpdateAccountStatus(acc.User, $"Lỗi nhận kết quả AI: {ex.Message} -> Dùng nội dung gốc.");
+                            }
+                        }
+                        else
+                        {
+                            UpdateAccountStatus(acc.User, "AI quá thời gian 30s -> Bỏ qua, dùng nội dung gốc.");
+                        }
+                    }
+
                     UpdateAccountStatus(acc.User, $"Đăng nhóm ({currentNumber}/{totalGroups}): Đang kiểm tra {link}...");
                     driver.Navigate().GoToUrl(link);
 
@@ -1012,13 +1151,6 @@ namespace FB_Ultra
 
                         // TRƯỜNG HỢP 2: ĐÃ VÀO NHÓM RỒI -> TIẾN HÀNH ĐĂNG BÀI
                         UpdateAccountStatus(acc.User, $"Nhóm ({currentNumber}/{totalGroups}): Đã là thành viên -> Tiến hành đăng bài...");
-
-                        if (captionIndex >= captions.Length)
-                        {
-                            captionIndex = 0;
-                        }
-                        string currentCaption = captions[captionIndex].Trim();
-                        captionIndex++;
 
                         // 3. XỬ LÝ MỞ KHUNG ĐĂNG BÀI ẨN DANH
                         bool openedBox = false;
@@ -1062,7 +1194,17 @@ namespace FB_Ultra
                                 openedBox = true;
                             }
                         }
-
+                        try
+                        {
+                            // Kiểm tra nhanh xem driver còn phản hồi không
+                            string currentUrl = driver.Url;
+                        }
+                        catch
+                        {
+                            UpdateAccountStatus(acc.User, "Trình duyệt đã bị mất kết nối hoặc đóng trước đó. Bỏ qua nhóm này...");
+                            continue; // Hoặc break tùy logic
+                        }
+                        // 3. XỬ LÝ MỞ KHUNG ĐĂNG BÀI THƯỜNG (Đã tối ưu và chống sập driver)
                         if (!openedBox)
                         {
                             var createPostBox = driver.FindElements(By.XPath("//span[contains(text(), 'Bạn viết gì') or contains(text(), 'Write something') or contains(text(), 'Tạo bài viết')]"));
@@ -1082,7 +1224,7 @@ namespace FB_Ultra
                             continue;
                         }
 
-                        // 4. ĐIỀN NỘI DUNG CAPTION (Có cơ chế Retry chống giật lag khi chạy đa luồng)
+                        // 4. ĐIỀN NỘI DUNG CAPTION (Đã thay bằng `finalCaption` sau khi AI rewrite nếu có)
                         string jsInsertText = @"
                     var box = document.querySelector('div[role=""dialog""] [contenteditable=""true""]') || 
                               document.querySelector('div[role=""textbox""][data-lexical-editor=""true""]') || 
@@ -1108,10 +1250,9 @@ namespace FB_Ultra
                 ";
 
                         bool isFilled = false;
-                        // Thử lại tối đa 3 lần nếu luồng đang bị chậm render popup
                         for (int retry = 0; retry < 3; retry++)
                         {
-                            isFilled = (bool)((IJavaScriptExecutor)driver).ExecuteScript(jsInsertText, currentCaption);
+                            isFilled = (bool)((IJavaScriptExecutor)driver).ExecuteScript(jsInsertText, finalCaption);
                             if (isFilled) break;
 
                             try { Task.Delay(1000, token).Wait(token); } catch { break; }
@@ -1128,7 +1269,7 @@ namespace FB_Ultra
                             continue;
                         }
 
-                        // 5. ĐÍNH KÈM ẢNH (LẤY NGẪU NHÂN + LÀM MỚI MD5 + ÉP HIỂN THỊ INPUT FILE)
+                        // 5. ĐÍNH KÈM ẢNH (GIỮ NGUYÊN CODE CŨ)
                         string targetImagePath = "";
                         string inputPath = cfg.LinkFileAnh;
 
@@ -1166,7 +1307,6 @@ namespace FB_Ultra
                                     targetImagePath = inputPath;
                                 }
 
-                                // Tạo file tạm thay đổi mã MD5 bằng cách thêm byte ngẫu nhiên vào cuối file
                                 if (!string.IsNullOrEmpty(targetImagePath) && System.IO.File.Exists(targetImagePath))
                                 {
                                     string tempImgPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "fb_rand_" + Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(targetImagePath));
@@ -1238,7 +1378,7 @@ namespace FB_Ultra
                             }
                         }
 
-                        // 6. BẤM NÚT ĐĂNG (ĐÃ MỞ KHÓA THỰC THI)
+                        // 6. BẤM NÚT ĐĂNG
                         var postBtn = driver.FindElements(By.XPath("//div[@aria-label='Đăng' or @aria-label='Post']//span[text()='Đăng' or text()='Post'] | //div[@role='button']//span[text()='Đăng' or text()='Post']"));
                         if (postBtn != null && postBtn.Count > 0)
                         {
@@ -1247,7 +1387,7 @@ namespace FB_Ultra
 
                             successPostCount++;
                             UpdateAccountStatus(acc.User, $"Đăng nhóm ({currentNumber}/{totalGroups}): Đăng bài thành công!");
-                            try { Task.Delay(3500, token).Wait(token); } catch { break; } // Đợi Facebook xử lý submit xong bài viết
+                            try { Task.Delay(3500, token).Wait(token); } catch { break; }
                         }
                         else
                         {
@@ -1371,11 +1511,11 @@ namespace FB_Ultra
 
         private void UpdateAccountStatus(string user, string status)
         {
-            //if (dgv_accounts.InvokeRequired)
-            //{
-            //    dgv_accounts.Invoke(new Action(() => UpdateAccountStatus(user, status)));
-            //    return;
-            //}
+            if (dgv_accounts.InvokeRequired)
+            {
+                dgv_accounts.Invoke(new Action(() => UpdateAccountStatus(user, status)));
+                return;
+            }
 
             foreach (DataGridViewRow row in dgv_accounts.Rows)
             {
@@ -1885,6 +2025,7 @@ namespace FB_Ultra
             if (cts != null)
             {
                 cts.Cancel(); // Hủy toàn bộ các luồng đang chạy song song
+                groupBox1.Text = $"Chức năng chính:";
             }
         }
         public void CloseChromeDriver(ChromeDriver driver)
@@ -1903,5 +2044,12 @@ namespace FB_Ultra
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi đóng driver: {ex.Message}");
             }
         }
+
+        private void btn_other_Click(object sender, EventArgs e)
+        {
+            FormOther subForm = new FormOther();
+            subForm.Show();       
+        }
+    
     }
 }

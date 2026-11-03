@@ -41,6 +41,7 @@ namespace FB_Ultra
             cb_nuoiNickNgauNhien_caiDatChung.Checked = currentSettings.NuoiNickNgauNhien;
             cb_tuVaoNhom_caiDatChung.Checked = currentSettings.TuDongVaoNhom;
             cb_tuDangBaiVaoNhom_caiDatChung.Checked = currentSettings.TuDongDangBaiVaoNhom;
+            tb_henGio_caiDatChung.Text = currentSettings.HenGio;
 
             // tự động đăng bài vào nhóm
             rdo_dangBaiThuong_tuDongDangBaiVaoNhom.Checked = currentSettings.DangThuong;
@@ -49,6 +50,11 @@ namespace FB_Ultra
             tb_linkAnhDangBai_tuDongDangBaiVaoNhom.Text = currentSettings.LinkFileAnh;
             tb_delayDangBai_tuDongDangBaiVaoNhom.Text = currentSettings.DelayDangBai;
             rtb_linkNhom_tuDongDangBaiVaoNhom.Text = currentSettings.DanhSachLinkNhomSpam;
+            cb_dungAI_tuDongDangBaiVaoNhom.Checked = currentSettings.DungAi_TuDongDangBai;
+            tb_apiAI_tuDongDangBaiVaoNhom.Text = currentSettings.ApiAI_TuDongDangBai;
+            rtb_sysContent_tuDongDangBaiVaoNhom.Text = currentSettings.AiSystemPrompt_TuDongDangBai;
+            rtb_userContent_tuDongDangBaiVaoNhom.Text = currentSettings.AiUserPrompt_TuDongDangBai;
+            rtb_testCap_tuDongDangBaiVaoNhom.Text = "";
 
             // nuôi nick
             cb_luotNewsfeed_nuoiNick.Checked = currentSettings.LuotNewsfeed;
@@ -109,6 +115,8 @@ namespace FB_Ultra
             currentSettings.NuoiNickNgauNhien = cb_nuoiNickNgauNhien_caiDatChung.Checked;
             currentSettings.TuDongVaoNhom = cb_tuVaoNhom_caiDatChung.Checked;
             currentSettings.TuDongDangBaiVaoNhom = cb_tuDangBaiVaoNhom_caiDatChung.Checked;
+            currentSettings.HenGio = tb_henGio_caiDatChung.Text;
+
             // Tự động đăng bài vào nhóm
             currentSettings.DangThuong = rdo_dangBaiThuong_tuDongDangBaiVaoNhom.Checked;
             currentSettings.DangAnDanh = rdo_dangBaiAnDanh_tuDongDangBaiVaoNhom.Checked;
@@ -116,6 +124,10 @@ namespace FB_Ultra
             currentSettings.LinkFileAnh = tb_linkAnhDangBai_tuDongDangBaiVaoNhom.Text;
             currentSettings.DelayDangBai = tb_delayDangBai_tuDongDangBaiVaoNhom.Text;
             currentSettings.DanhSachLinkNhomSpam = rtb_linkNhom_tuDongDangBaiVaoNhom.Text;
+            currentSettings.DungAi_TuDongDangBai = cb_dungAI_tuDongDangBaiVaoNhom.Checked;
+            currentSettings.ApiAI_TuDongDangBai = tb_apiAI_tuDongDangBaiVaoNhom.Text;
+            currentSettings.AiSystemPrompt_TuDongDangBai = rtb_sysContent_tuDongDangBaiVaoNhom.Text;
+            currentSettings.AiUserPrompt_TuDongDangBai = rtb_userContent_tuDongDangBaiVaoNhom.Text;
 
             // Nuôi nick
             currentSettings.LuotNewsfeed = cb_luotNewsfeed_nuoiNick.Checked;
@@ -164,6 +176,39 @@ namespace FB_Ultra
         private void btn_cancel_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private async void btn_testCap_Click(object sender, EventArgs e)
+        {
+            // 1. Thu thập ĐẦU VÀO từ các control trên giao diện
+            string apiUrl = tb_apiAI_tuDongDangBaiVaoNhom.Text.Trim();
+            string systemPrompt = rtb_sysContent_tuDongDangBaiVaoNhom.Text.Trim(); // Ô ST (System)
+            string userPrompt = rtb_userContent_tuDongDangBaiVaoNhom.Text.Trim();          // Ô User (Content gốc)
+            string modelName = "qwen2.5:3b";                                       // Tên model Ollama của ông
+
+            // 2. Validate đầu vào cơ bản
+            if (string.IsNullOrEmpty(userPrompt))
+            {
+                MessageBox.Show("Vui lòng nhập nội dung User (Content) cần AI xử lý!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(apiUrl))
+            {
+                apiUrl = "http://localhost:11434/v1/chat/completions"; // Giá trị mặc định nếu để trống
+            }
+
+            // 3. Khóa nút, hiển thị trạng thái đang xử lý
+            btn_testCap.Enabled = false;
+            rtb_testCap_tuDongDangBaiVaoNhom.Text = "Đang gửi đầu vào cho AI xử lý...";
+
+            // 4. Truyền đầu vào vào AiService để lấy đầu ra (Output)
+            var aiService = new AiService();
+            string aiOutput = await aiService.CallAiRewriteAsync(apiUrl, systemPrompt, userPrompt, modelName);
+
+            // 5. Đổ kết quả ra ô hiển thị
+            rtb_testCap_tuDongDangBaiVaoNhom.Text = aiOutput;
+            btn_testCap.Enabled = true;
         }
     }
 }
