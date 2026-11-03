@@ -10,6 +10,7 @@ namespace FB_Ultra
 {
     public class FacebookLoginService
     {
+        private static readonly HttpClient httpClient = new HttpClient();
         private ChromeDriver driver;
 
         public FacebookLoginService(ChromeDriver chromeDriver)
@@ -21,24 +22,20 @@ namespace FB_Ultra
         {
             try
             {
-                // Mở trang chủ Facebook trước để thiết lập Security Origin cho Domain
                 driver.Navigate().GoToUrl("https://www.facebook.com");
                 Thread.Sleep(2000);
 
-                // 1. Nếu đã đăng nhập sẵn trong Profile / Cookie cũ còn sống
                 if (CheckIsLoggedIn())
                 {
                     return true;
                 }
 
-                // 2. Thử inject Cookie mới (nếu có)
                 if (!string.IsNullOrEmpty(acc.Cookie))
                 {
                     bool isCookieSuccess = InjectAndCheckCookie(acc.Cookie);
                     if (isCookieSuccess) return true;
                 }
 
-                // 3. Nếu vẫn ở màn hình Login -> Bắt buộc nhập User / Pass
                 if (!string.IsNullOrEmpty(acc.User) && !string.IsNullOrEmpty(acc.Pass))
                 {
                     return LoginWithUserPass(acc);
@@ -56,14 +53,12 @@ namespace FB_Ultra
         {
             try
             {
-                // BẮT BUỘC phải đang ở trang facebook.com trước khi add cookie để tránh lỗi Domain Origin
                 if (!driver.Url.Contains("facebook.com"))
                 {
                     driver.Navigate().GoToUrl("https://www.facebook.com");
                     Thread.Sleep(1500);
                 }
 
-                // Xóa sạch cookie cũ (nếu có) để tránh xung đột phiên cũ
                 driver.Manage().Cookies.DeleteAllCookies();
 
                 string[] cookies = cookieString.Split(';');
@@ -91,7 +86,6 @@ namespace FB_Ultra
                     }
                 }
 
-                // Dùng lệnh Refresh thay vì GoToUrl để Facebook nhận diện cookie mà không bị bóp session
                 driver.Navigate().Refresh();
                 Thread.Sleep(4000);
 
@@ -113,7 +107,6 @@ namespace FB_Ultra
                     Thread.Sleep(2000);
                 }
 
-                // Tìm ô Email an toàn bằng hàm FindElementSafe (không bị văng Crash)
                 IWebElement txtUser = FindElementSafe(By.Id("email"))
                                    ?? FindElementSafe(By.Name("email"))
                                    ?? FindElementSafe(By.CssSelector("input[type='text'], input[name='email']"));
@@ -125,7 +118,6 @@ namespace FB_Ultra
                     Thread.Sleep(500);
                 }
 
-                // Tìm ô Password an toàn
                 IWebElement txtPass = FindElementSafe(By.Id("pass"))
                                    ?? FindElementSafe(By.Name("pass"))
                                    ?? FindElementSafe(By.CssSelector("input[type='password'], input[name='pass']"));
@@ -137,7 +129,6 @@ namespace FB_Ultra
                     Thread.Sleep(500);
                 }
 
-                // Click nút Login
                 IWebElement btnLogin = FindElementSafe(By.Name("login"))
                                     ?? FindElementSafe(By.CssSelector("button[type='submit']"));
 
@@ -152,7 +143,6 @@ namespace FB_Ultra
 
                 Thread.Sleep(5000);
 
-                // Kiểm tra 2FA
                 if (CheckIs2FAForm())
                 {
                     if (!string.IsNullOrEmpty(acc.TwoFA))
@@ -173,7 +163,6 @@ namespace FB_Ultra
             }
         }
 
-        // --- HÀM HỖ TRỢ TÌM ELEMENT AN TOÀN (KHÔNG BAO GIỜ BỊ CRASH UNHANDLED) ---
         private IWebElement FindElementSafe(By by, int timeoutSeconds = 5)
         {
             var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
@@ -203,16 +192,13 @@ namespace FB_Ultra
             try
             {
                 secretKey = secretKey.Replace(" ", "").Trim();
-                using (HttpClient client = new HttpClient())
-                {
-                    string url = $"https://2fa.live/tok/{secretKey}";
-                    string response = client.GetStringAsync(url).Result;
+                string url = $"https://2fa.live/tok/{secretKey}";
+                string response = httpClient.GetStringAsync(url).Result;
 
-                    var match = Regex.Match(response, @"\d{6}");
-                    if (match.Success)
-                    {
-                        return match.Value;
-                    }
+                var match = Regex.Match(response, @"\d{6}");
+                if (match.Success)
+                {
+                    return match.Value;
                 }
             }
             catch { }
@@ -264,7 +250,6 @@ namespace FB_Ultra
         {
             try
             {
-                // Dấu hiệu chắc chắn nhất: Đã có cookie c_user tồn tại và không trống
                 var cUserCookie = driver.Manage().Cookies.GetCookieNamed("c_user");
                 if (cUserCookie != null && !string.IsNullOrEmpty(cUserCookie.Value))
                 {
