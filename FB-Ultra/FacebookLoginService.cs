@@ -99,6 +99,13 @@ namespace FB_Ultra
 
         private bool LoginWithUserPass(AccountModel acc)
         {
+            string account;
+            if (acc.Mail.Trim().Length == 0)
+            {
+                account = acc.User;
+            }
+            else { account = acc.Mail; }
+
             try
             {
                 if (!driver.Url.Contains("facebook.com"))
@@ -114,7 +121,7 @@ namespace FB_Ultra
                 if (txtUser != null)
                 {
                     txtUser.Clear();
-                    txtUser.SendKeys(acc.User);
+                    txtUser.SendKeys(account);
                     Thread.Sleep(500);
                 }
 
