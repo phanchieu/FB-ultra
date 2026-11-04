@@ -451,6 +451,7 @@ namespace FB_Ultra
                 options.AddArgument("--disable-domain-reliability");
                 options.AddArgument("--disable-background-networking");
                 options.AddArgument("--disable-features=Translate,OptimizationHints,MediaRouter,InProductHelp,OptimizeLoadingDataUrls");
+                options.AddUserProfilePreference("profile.default_content_setting_values.media_stream_camera", 1);
 
                 // Anti Automation
                 options.AddArgument("--disable-blink-features=AutomationControlled");

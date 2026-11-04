@@ -106,13 +106,13 @@ namespace FB_Ultra
 
                 // --- PARSE CHUỖI LINH HOẠT THEO COMBOBOX ---
 
-                // DẠNG 6 (MỚI): UID | Pass | Cookie | Token | Extra | JsonInfo (Index 5)
+                // DẠNG 6 (MỚI): UID | Pass | Cookie | Token | 2FA | JsonInfo (Index 5)
                 if (selectedFormatText.Contains("jsoninfo") || cbo_AccountFormat.SelectedIndex == 5)
                 {
                     pass = parts.Length > 1 ? parts[1] : "";
                     cookie = parts.Length > 2 ? parts[2] : "";
                     token = parts.Length > 3 ? parts[3] : "";
-                    // parts[4] là Extra (bỏ qua hoặc không dùng đến)
+                    twoFa = parts.Length > 4 ? parts[4] : ""; // Lấy đúng mã 2FA ở phần thứ 5
 
                     string jsonInfo = parts.Length > 5 ? parts[5] : "";
                     if (!string.IsNullOrEmpty(jsonInfo) && jsonInfo.Contains("{"))
