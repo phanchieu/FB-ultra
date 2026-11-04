@@ -99,12 +99,12 @@ namespace FB_Ultra
 
         private bool LoginWithUserPass(AccountModel acc)
         {
-            string account;
-            if (acc.Mail.Trim().Length == 0)
-            {
-                account = acc.User;
-            }
-            else { account = acc.Mail; }
+            //string account;
+            //if (acc.Mail.Trim().Length == 0)
+            //{
+            //    account = acc.User;
+            //}
+            //else { account = acc.Mail; }
 
             try
             {
@@ -121,7 +121,7 @@ namespace FB_Ultra
                 if (txtUser != null)
                 {
                     txtUser.Clear();
-                    txtUser.SendKeys(account);
+                    txtUser.SendKeys(acc.User);
                     Thread.Sleep(500);
                 }
 
