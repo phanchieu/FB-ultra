@@ -548,7 +548,12 @@ namespace FB_Ultra
                         UpdateAccountStatus(acc.User, "Mở thường (Thủ công)");
                         return;
                     }
-
+                    // --- KIỂM TRA CÔNG TẮC TỔNG TRƯỚC KHI CHẠY ---
+                    if (settings.likeCmtTheoLink_caiDatChung)
+                    {
+                        UpdateAccountStatus(acc.User, "Đang chạy Like/Cmt theo link...");
+                        RunLikeCommentTheoLink(driver, settings, token);
+                    }
                     // CÁC CHẾ ĐỘ TỰ ĐỘNG KHÁC (Mở tự động / Nuôi): Mới tiếp tục chạy pipeline kịch bản
                     RunAccountAutomationPipeline(driver, acc, settings, token);
                 }
@@ -1422,6 +1427,183 @@ namespace FB_Ultra
             catch (Exception ex)
             {
                 UpdateAccountStatus(acc.User, $"Lỗi đăng nhóm: {ex.Message}");
+            }
+        }
+        public void RunLikeCommentTheoLink(ChromeDriver driver, SettingsModel settings, CancellationToken token)
+        {
+            if (string.IsNullOrWhiteSpace(settings.link_likeCmtTheoLink)) return;
+
+            // Lấy danh sách Link
+            var links = settings.link_likeCmtTheoLink
+                                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(l => l.Trim())
+                                .Where(l => !string.IsNullOrEmpty(l))
+                                .ToList();
+
+            // Lấy danh sách Nội dung Comment
+            var comments = settings.textCmt_likeCmtTheoLink
+                                   .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                   .Select(c => c.Trim())
+                                   .Where(c => !string.IsNullOrEmpty(c))
+                                   .ToList();
+
+            Random rand = new Random();
+            int delaySeconds = int.TryParse(settings.delay_likeCmtTheoLink, out int d) ? d : 3;
+
+            foreach (var link in links)
+            {
+                // Kiểm tra lệnh dừng trước khi bắt đầu bài mới
+                token.ThrowIfCancellationRequested();
+
+                try
+                {
+                    // 1. Điều hướng đến bài viết
+                    driver.Navigate().GoToUrl(link);
+                    Thread.Sleep(3000);
+                    token.ThrowIfCancellationRequested();
+
+                    // 2. XỬ LÝ THẢ CẢM XÚC
+                    bool hasReaction = settings.like_likeCmtTheoLink ||
+                                       settings.tim_likeCmtTheoLink ||
+                                       settings.haha_likeCmtTheoLink ||
+                                       settings.sad_likeCmtTheoLink ||
+                                       settings.camXucNgauNhien_likeCmtTheoLink;
+
+                    if (hasReaction)
+                    {
+                        var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                        // Danh sách các XPath dự phòng để bắt nút Like/Thích ở nhiều phiên bản giao diện Facebook khác nhau
+                        string[] likeXpaths = {
+                    "//div[@aria-label='Thích' or @aria-label='Like']",
+                    "//div[contains(@aria-label, 'Thích') or contains(@aria-label, 'Like')]",
+                    "//span[text()='Thích' or text()='Like']/ancestor::div[@role='button'][1]",
+                    "//div[@role='button']//span[text()='Thích' or text()='Like']"
+                };
+
+                        IWebElement likeButton = null;
+                        foreach (var xp in likeXpaths)
+                        {
+                            try
+                            {
+                                likeButton = wait.Until(drv => drv.FindElement(By.XPath(xp)));
+                                if (likeButton != null) break;
+                            }
+                            catch { }
+                        }
+
+                        if (likeButton != null)
+                        {
+                            // Hover chuột vào nút Like để hiện bảng cảm xúc
+                            Actions actions = new Actions(driver);
+                            actions.MoveToElement(likeButton).Perform();
+                            Thread.Sleep(1000);
+                            token.ThrowIfCancellationRequested();
+
+                            string reactionXpath = "";
+
+                            if (settings.camXucNgauNhien_likeCmtTheoLink)
+                            {
+                                string[] listReactions = {
+                            "//div[@aria-label='Thích']",
+                            "//div[@aria-label='Yêu thích']",
+                            "//div[@aria-label='Haha']",
+                            "//div[@aria-label='Buồn']"
+                        };
+                                reactionXpath = listReactions[rand.Next(listReactions.Length)];
+                            }
+                            else
+                            {
+                                if (settings.like_likeCmtTheoLink) reactionXpath = "//div[@aria-label='Thích']";
+                                else if (settings.tim_likeCmtTheoLink) reactionXpath = "//div[@aria-label='Yêu thích']";
+                                else if (settings.haha_likeCmtTheoLink) reactionXpath = "//div[@aria-label='Haha']";
+                                else if (settings.sad_likeCmtTheoLink) reactionXpath = "//div[@aria-label='Buồn']";
+                            }
+
+                            if (!string.IsNullOrEmpty(reactionXpath))
+                            {
+                                try
+                                {
+                                    IWebElement reactionElement = wait.Until(drv => drv.FindElement(By.XPath(reactionXpath)));
+                                    reactionElement.Click();
+                                    Thread.Sleep(1500);
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+
+                    // 3. XỬ LÝ BÌNH LUẬN (CHỈ CHẠY KHI Ô CMT ĐƯỢC TICK VÀ CÓ NỘI DUNG)
+                    // 3. XỬ LÝ BÌNH LUẬN (ĐÃ CẬP NHẬT XPath ĐA DẠNG VÀ AN TOÀN CHO REACTJS)
+                    if (settings.cmt_likeCmtTheoLink && comments.Count > 0)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        var waitComment = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                        // Các XPath dự phòng để bắt mọi loại khung comment trên Facebook (Bài viết, Reel, Nhóm, Fanpage)
+                        string[] commentXpaths = {
+                        "//div[@role='textbox' and (contains(@aria-label, 'bình luận') or contains(@aria-label, 'comment'))]",
+                        "//div[contains(@aria-label, 'Viết bình luận') or contains(@aria-label, 'Write a comment')]",
+                        "//div[@contenteditable='true' and @role='textbox']",
+                        "//form//div[@contenteditable='true']"
+                    };
+
+                        IWebElement commentBox = null;
+                        foreach (var xp in commentXpaths)
+                        {
+                            try
+                            {
+                                commentBox = waitComment.Until(drv => drv.FindElement(By.XPath(xp)));
+                                if (commentBox != null) break;
+                            }
+                            catch { }
+                        }
+
+                        if (commentBox != null)
+                        {
+                            try
+                            {
+                                // Cuộn màn hình đến khung comment cho chắc ăn hiển thị trên viewport
+                                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", commentBox);
+                                Thread.Sleep(500);
+
+                                // Click vào khung comment
+                                commentBox.Click();
+                                Thread.Sleep(500);
+
+                                // Bốc ngẫu nhiên 1 câu comment
+                                string selectedComment = comments[rand.Next(comments.Count)];
+
+                                // Dùng Actions class để gõ chữ, giúp ReactJS của Facebook nhận diện sự kiện thay đổi text mượt hơn
+                                Actions actions = new Actions(driver);
+                                actions.Click(commentBox).SendKeys(selectedComment).Perform();
+                                Thread.Sleep(1500);
+                                token.ThrowIfCancellationRequested();
+
+                                // Gửi phím Enter để đăng bình luận
+                                commentBox.SendKeys(OpenQA.Selenium.Keys.Enter);
+                                Thread.Sleep(2000);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Lỗi thao tác khung comment: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // --- 4. DELAY THÔNG MINH SAU KHI XONG 1 BÀI ---
+                    // Chia nhỏ thời gian chờ theo giây để nút "Dừng" có hiệu lực tức thì, không bị treo thread
+                    for (int i = 0; i < delaySeconds; i++)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        Thread.Sleep(1000);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (ex is OperationCanceledException) throw; // Ném tiếp ngoại lệ dừng để thoát luồng chuẩn xác
+                    Console.WriteLine($"Lỗi chạy link {link}: {ex.Message}");
+                }
             }
         }
         // --- HÀM TÌM HANDLE CỬA SỔ THEO UNIQUE TITLE ---
