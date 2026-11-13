@@ -29,6 +29,10 @@
         private void InitializeComponent()
         {
             groupBox2 = new GroupBox();
+            cb_likeCmtTheoLink_caiDatChung = new CheckBox();
+            label34 = new Label();
+            tb_henGio_caiDatChung = new TextBox();
+            label33 = new Label();
             cb_nuoiNickNgauNhien_caiDatChung = new CheckBox();
             label31 = new Label();
             label30 = new Label();
@@ -124,18 +128,29 @@
             cb_luotNewsfeed_nuoiNickAI = new CheckBox();
             btn_save = new Button();
             btn_cancel = new Button();
-            label33 = new Label();
-            tb_henGio_caiDatChung = new TextBox();
-            label34 = new Label();
+            groupBox6 = new GroupBox();
+            tb_delay_likeCmtTheoLink = new TextBox();
+            label36 = new Label();
+            cb_cmt_likeCmtTheoLink = new CheckBox();
+            label35 = new Label();
+            rtb_link_likeCmtTheoLink = new RichTextBox();
+            rtb_cmt_likeCmtTheoLink = new RichTextBox();
+            cb_thaCamXucNgauNhien_likeCmtTheoLink = new CheckBox();
+            cb_sad_likeCmtTheoLink = new CheckBox();
+            cb_haha_likeCmtTheoLink = new CheckBox();
+            cb_tim_likeCmtTheoLink = new CheckBox();
+            cb_like_likeCmtTheoLink = new CheckBox();
             groupBox2.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox4.SuspendLayout();
             groupBox5.SuspendLayout();
+            groupBox6.SuspendLayout();
             SuspendLayout();
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(cb_likeCmtTheoLink_caiDatChung);
             groupBox2.Controls.Add(label34);
             groupBox2.Controls.Add(tb_henGio_caiDatChung);
             groupBox2.Controls.Add(label33);
@@ -168,6 +183,42 @@
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "Cài đặt chung";
+            // 
+            // cb_likeCmtTheoLink_caiDatChung
+            // 
+            cb_likeCmtTheoLink_caiDatChung.AutoSize = true;
+            cb_likeCmtTheoLink_caiDatChung.Location = new Point(279, 51);
+            cb_likeCmtTheoLink_caiDatChung.Name = "cb_likeCmtTheoLink_caiDatChung";
+            cb_likeCmtTheoLink_caiDatChung.Size = new Size(120, 19);
+            cb_likeCmtTheoLink_caiDatChung.TabIndex = 34;
+            cb_likeCmtTheoLink_caiDatChung.Text = "like, cmt theo link";
+            cb_likeCmtTheoLink_caiDatChung.UseVisualStyleBackColor = true;
+            // 
+            // label34
+            // 
+            label34.AutoSize = true;
+            label34.Location = new Point(113, 50);
+            label34.Name = "label34";
+            label34.Size = new Size(14, 15);
+            label34.TabIndex = 33;
+            label34.Text = "p";
+            // 
+            // tb_henGio_caiDatChung
+            // 
+            tb_henGio_caiDatChung.Location = new Point(67, 45);
+            tb_henGio_caiDatChung.Name = "tb_henGio_caiDatChung";
+            tb_henGio_caiDatChung.Size = new Size(43, 23);
+            tb_henGio_caiDatChung.TabIndex = 32;
+            tb_henGio_caiDatChung.Text = "0";
+            // 
+            // label33
+            // 
+            label33.AutoSize = true;
+            label33.Location = new Point(11, 49);
+            label33.Name = "label33";
+            label33.Size = new Size(52, 15);
+            label33.TabIndex = 31;
+            label33.Text = "Hẹn giờ:";
             // 
             // cb_nuoiNickNgauNhien_caiDatChung
             // 
@@ -1088,37 +1139,133 @@
             btn_cancel.UseVisualStyleBackColor = true;
             btn_cancel.Click += btn_cancel_Click;
             // 
-            // label33
+            // groupBox6
             // 
-            label33.AutoSize = true;
-            label33.Location = new Point(11, 49);
-            label33.Name = "label33";
-            label33.Size = new Size(52, 15);
-            label33.TabIndex = 31;
-            label33.Text = "Hẹn giờ:";
+            groupBox6.Controls.Add(tb_delay_likeCmtTheoLink);
+            groupBox6.Controls.Add(label36);
+            groupBox6.Controls.Add(cb_cmt_likeCmtTheoLink);
+            groupBox6.Controls.Add(label35);
+            groupBox6.Controls.Add(rtb_link_likeCmtTheoLink);
+            groupBox6.Controls.Add(rtb_cmt_likeCmtTheoLink);
+            groupBox6.Controls.Add(cb_thaCamXucNgauNhien_likeCmtTheoLink);
+            groupBox6.Controls.Add(cb_sad_likeCmtTheoLink);
+            groupBox6.Controls.Add(cb_haha_likeCmtTheoLink);
+            groupBox6.Controls.Add(cb_tim_likeCmtTheoLink);
+            groupBox6.Controls.Add(cb_like_likeCmtTheoLink);
+            groupBox6.Location = new Point(475, 565);
+            groupBox6.Name = "groupBox6";
+            groupBox6.Size = new Size(550, 159);
+            groupBox6.TabIndex = 9;
+            groupBox6.TabStop = false;
+            groupBox6.Text = "like,cmt theo link";
             // 
-            // tb_henGio_caiDatChung
+            // tb_delay_likeCmtTheoLink
             // 
-            tb_henGio_caiDatChung.Location = new Point(67, 45);
-            tb_henGio_caiDatChung.Name = "tb_henGio_caiDatChung";
-            tb_henGio_caiDatChung.Size = new Size(43, 23);
-            tb_henGio_caiDatChung.TabIndex = 32;
-            tb_henGio_caiDatChung.Text = "0";
+            tb_delay_likeCmtTheoLink.Location = new Point(492, 18);
+            tb_delay_likeCmtTheoLink.Name = "tb_delay_likeCmtTheoLink";
+            tb_delay_likeCmtTheoLink.Size = new Size(52, 23);
+            tb_delay_likeCmtTheoLink.TabIndex = 22;
             // 
-            // label34
+            // label36
             // 
-            label34.AutoSize = true;
-            label34.Location = new Point(113, 50);
-            label34.Name = "label34";
-            label34.Size = new Size(14, 15);
-            label34.TabIndex = 33;
-            label34.Text = "p";
+            label36.AutoSize = true;
+            label36.Location = new Point(447, 21);
+            label36.Name = "label36";
+            label36.Size = new Size(39, 15);
+            label36.TabIndex = 21;
+            label36.Text = "Delay:";
+            // 
+            // cb_cmt_likeCmtTheoLink
+            // 
+            cb_cmt_likeCmtTheoLink.AutoSize = true;
+            cb_cmt_likeCmtTheoLink.Location = new Point(6, 47);
+            cb_cmt_likeCmtTheoLink.Name = "cb_cmt_likeCmtTheoLink";
+            cb_cmt_likeCmtTheoLink.Size = new Size(49, 19);
+            cb_cmt_likeCmtTheoLink.TabIndex = 20;
+            cb_cmt_likeCmtTheoLink.Text = "Cmt";
+            cb_cmt_likeCmtTheoLink.UseVisualStyleBackColor = true;
+            // 
+            // label35
+            // 
+            label35.AutoSize = true;
+            label35.Location = new Point(288, 54);
+            label35.Name = "label35";
+            label35.Size = new Size(29, 15);
+            label35.TabIndex = 19;
+            label35.Text = "link:";
+            // 
+            // rtb_link_likeCmtTheoLink
+            // 
+            rtb_link_likeCmtTheoLink.Location = new Point(288, 72);
+            rtb_link_likeCmtTheoLink.Name = "rtb_link_likeCmtTheoLink";
+            rtb_link_likeCmtTheoLink.Size = new Size(257, 81);
+            rtb_link_likeCmtTheoLink.TabIndex = 17;
+            rtb_link_likeCmtTheoLink.Text = "";
+            // 
+            // rtb_cmt_likeCmtTheoLink
+            // 
+            rtb_cmt_likeCmtTheoLink.Location = new Point(5, 72);
+            rtb_cmt_likeCmtTheoLink.Name = "rtb_cmt_likeCmtTheoLink";
+            rtb_cmt_likeCmtTheoLink.Size = new Size(275, 81);
+            rtb_cmt_likeCmtTheoLink.TabIndex = 16;
+            rtb_cmt_likeCmtTheoLink.Text = "";
+            // 
+            // cb_thaCamXucNgauNhien_likeCmtTheoLink
+            // 
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.AutoSize = true;
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.Location = new Point(220, 22);
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.Name = "cb_thaCamXucNgauNhien_likeCmtTheoLink";
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.Size = new Size(156, 19);
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.TabIndex = 15;
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.Text = "Thả cảm xúc ngẫu nhiên";
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.UseVisualStyleBackColor = true;
+            // 
+            // cb_sad_likeCmtTheoLink
+            // 
+            cb_sad_likeCmtTheoLink.AutoSize = true;
+            cb_sad_likeCmtTheoLink.Location = new Point(169, 22);
+            cb_sad_likeCmtTheoLink.Name = "cb_sad_likeCmtTheoLink";
+            cb_sad_likeCmtTheoLink.Size = new Size(45, 19);
+            cb_sad_likeCmtTheoLink.TabIndex = 14;
+            cb_sad_likeCmtTheoLink.Text = "Sad";
+            cb_sad_likeCmtTheoLink.UseVisualStyleBackColor = true;
+            // 
+            // cb_haha_likeCmtTheoLink
+            // 
+            cb_haha_likeCmtTheoLink.AutoSize = true;
+            cb_haha_likeCmtTheoLink.Location = new Point(109, 22);
+            cb_haha_likeCmtTheoLink.Name = "cb_haha_likeCmtTheoLink";
+            cb_haha_likeCmtTheoLink.Size = new Size(54, 19);
+            cb_haha_likeCmtTheoLink.TabIndex = 13;
+            cb_haha_likeCmtTheoLink.Text = "Haha";
+            cb_haha_likeCmtTheoLink.UseVisualStyleBackColor = true;
+            // 
+            // cb_tim_likeCmtTheoLink
+            // 
+            cb_tim_likeCmtTheoLink.AutoSize = true;
+            cb_tim_likeCmtTheoLink.Location = new Point(56, 22);
+            cb_tim_likeCmtTheoLink.Name = "cb_tim_likeCmtTheoLink";
+            cb_tim_likeCmtTheoLink.Size = new Size(47, 19);
+            cb_tim_likeCmtTheoLink.TabIndex = 12;
+            cb_tim_likeCmtTheoLink.Text = "Tim";
+            cb_tim_likeCmtTheoLink.UseVisualStyleBackColor = true;
+            // 
+            // cb_like_likeCmtTheoLink
+            // 
+            cb_like_likeCmtTheoLink.AutoSize = true;
+            cb_like_likeCmtTheoLink.Location = new Point(6, 22);
+            cb_like_likeCmtTheoLink.Name = "cb_like_likeCmtTheoLink";
+            cb_like_likeCmtTheoLink.Size = new Size(44, 19);
+            cb_like_likeCmtTheoLink.TabIndex = 11;
+            cb_like_likeCmtTheoLink.Text = "like";
+            cb_like_likeCmtTheoLink.UseVisualStyleBackColor = true;
             // 
             // FormSettings
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1035, 779);
+            Controls.Add(groupBox6);
             Controls.Add(btn_cancel);
             Controls.Add(btn_save);
             Controls.Add(groupBox5);
@@ -1141,6 +1288,8 @@
             groupBox4.PerformLayout();
             groupBox5.ResumeLayout(false);
             groupBox5.PerformLayout();
+            groupBox6.ResumeLayout(false);
+            groupBox6.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -1245,5 +1394,19 @@
         private Label label34;
         private TextBox tb_henGio_caiDatChung;
         private Label label33;
+        private GroupBox groupBox6;
+        private CheckBox cb_thaCamXucNgauNhien_likeCmtTheoLink;
+        private CheckBox cb_sad_likeCmtTheoLink;
+        private CheckBox cb_haha_likeCmtTheoLink;
+        private CheckBox cb_tim_likeCmtTheoLink;
+        private CheckBox cb_like_likeCmtTheoLink;
+        private Label label35;
+        private CheckBox checkBox6;
+        private RichTextBox rtb_link_likeCmtTheoLink;
+        private RichTextBox rtb_cmt_likeCmtTheoLink;
+        private CheckBox cb_cmt_likeCmtTheoLink;
+        private TextBox tb_delay_likeCmtTheoLink;
+        private Label label36;
+        private CheckBox cb_likeCmtTheoLink_caiDatChung;
     }
 }

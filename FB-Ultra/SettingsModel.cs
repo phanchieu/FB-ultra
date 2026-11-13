@@ -23,6 +23,7 @@ namespace FB_Ultra
         public bool TuDongDangBaiVaoNhom { get; set; } = false;
         public bool KetBanCheo { get; set; } = false;
         public bool NuoiNickNgauNhien { get; set; } = false;
+        public bool likeCmtTheoLink_caiDatChung { get; set; } = false;
 
         // Tương tác nuôi nick
         public bool LuotNewsfeed { get; set; }
@@ -74,5 +75,16 @@ namespace FB_Ultra
         public string AiThoiGianNuoiMax { get; set; } = "";
         public string AiTiLeThaCamXuc { get; set; } = "0";
         public string AiTiLeCmt { get; set; } = "0";
+
+        // like, cmt theo link
+        public bool like_likeCmtTheoLink { get; set; }
+        public bool tim_likeCmtTheoLink { get; set; }
+        public bool haha_likeCmtTheoLink { get; set; }
+        public bool sad_likeCmtTheoLink { get; set; }
+        public bool camXucNgauNhien_likeCmtTheoLink { get; set; }
+        public bool cmt_likeCmtTheoLink { get; set; }
+        public string textCmt_likeCmtTheoLink { get; set; } = "";
+        public string link_likeCmtTheoLink { get; set; } = "";
+        public string delay_likeCmtTheoLink { get; set; } = "";
     }
 }

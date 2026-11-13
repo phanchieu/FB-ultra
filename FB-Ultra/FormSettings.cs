@@ -42,6 +42,7 @@ namespace FB_Ultra
             cb_tuVaoNhom_caiDatChung.Checked = currentSettings.TuDongVaoNhom;
             cb_tuDangBaiVaoNhom_caiDatChung.Checked = currentSettings.TuDongDangBaiVaoNhom;
             tb_henGio_caiDatChung.Text = currentSettings.HenGio;
+            cb_likeCmtTheoLink_caiDatChung.Checked = currentSettings.likeCmtTheoLink_caiDatChung;
 
             // tự động đăng bài vào nhóm
             rdo_dangBaiThuong_tuDongDangBaiVaoNhom.Checked = currentSettings.DangThuong;
@@ -91,6 +92,17 @@ namespace FB_Ultra
             tb_tiLeCmt_nuoiNickAI.Text = currentSettings.AiTiLeCmt;
             tb_thoiGianNuoiMin_nuoiNickAI.Text = currentSettings.AiThoiGianNuoiMin;
             tb_thoiGianNuoiMax_nuoiNickAI.Text = currentSettings.AiThoiGianNuoiMax;
+
+            //like, cmt theo link
+            cb_like_likeCmtTheoLink.Checked = currentSettings.like_likeCmtTheoLink;
+            cb_tim_likeCmtTheoLink.Checked = currentSettings.tim_likeCmtTheoLink;
+            cb_haha_likeCmtTheoLink.Checked = currentSettings.haha_likeCmtTheoLink;
+            cb_sad_likeCmtTheoLink.Checked = currentSettings.sad_likeCmtTheoLink;
+            cb_thaCamXucNgauNhien_likeCmtTheoLink.Checked = currentSettings.camXucNgauNhien_likeCmtTheoLink;
+            cb_cmt_likeCmtTheoLink.Checked = currentSettings.cmt_likeCmtTheoLink;
+            rtb_cmt_likeCmtTheoLink.Text = currentSettings.textCmt_likeCmtTheoLink;
+            rtb_link_likeCmtTheoLink.Text = currentSettings.link_likeCmtTheoLink;
+            tb_delay_likeCmtTheoLink.Text = currentSettings.delay_likeCmtTheoLink;
 
             this.ActiveControl = btn_save;
         }
@@ -164,6 +176,18 @@ namespace FB_Ultra
             currentSettings.AiThoiGianNuoiMax = tb_thoiGianNuoiMax_nuoiNickAI.Text;
             currentSettings.AiTiLeThaCamXuc = tb_tiLeThaCamXuc_nuoiNickAI.Text;
             currentSettings.AiTiLeCmt = tb_tiLeCmt_nuoiNickAI.Text;
+
+            //like, cmt theo link
+            currentSettings.like_likeCmtTheoLink = cb_like_likeCmtTheoLink.Checked;
+            currentSettings.tim_likeCmtTheoLink = cb_tim_likeCmtTheoLink.Checked;
+            currentSettings.haha_likeCmtTheoLink = cb_haha_likeCmtTheoLink.Checked;
+            currentSettings.sad_likeCmtTheoLink = cb_sad_likeCmtTheoLink.Checked;
+            currentSettings.camXucNgauNhien_likeCmtTheoLink = cb_thaCamXucNgauNhien_likeCmtTheoLink.Checked;
+            currentSettings.cmt_likeCmtTheoLink = cb_cmt_likeCmtTheoLink.Checked;
+            currentSettings.textCmt_likeCmtTheoLink = rtb_cmt_likeCmtTheoLink.Text;
+            currentSettings.link_likeCmtTheoLink = rtb_link_likeCmtTheoLink.Text;
+            currentSettings.delay_likeCmtTheoLink = tb_delay_likeCmtTheoLink.Text;
+            currentSettings.likeCmtTheoLink_caiDatChung = cb_likeCmtTheoLink_caiDatChung.Checked;
 
             // 2. Gọi hàm lưu xuống file JSON
             SettingsManager.SaveSettings(currentSettings);
