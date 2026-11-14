@@ -556,6 +556,25 @@ namespace FB_Ultra
                     }
                     // CÁC CHẾ ĐỘ TỰ ĐỘNG KHÁC (Mở tự động / Nuôi): Mới tiếp tục chạy pipeline kịch bản
                     RunAccountAutomationPipeline(driver, acc, settings, token);
+                    // --- KHI CHẠY XONG HẾT CÁC TÁC VỤ TỰ ĐỘNG ---
+                    if (settings.TuDongCapNhatCookie) // Tên property checkbox cài đặt chung của ông
+                    {
+                        UpdateAccountStatus(acc.User, "Đang trích xuất Cookie/Token mới...");
+
+                        // Gọi hàm lấy Cookie và Token mới từ ChromeDriver đã viết trước đó
+                        var (newCookie, newToken) = GetNewCookieAndToken(driver);
+
+                        if (!string.IsNullOrEmpty(newCookie))
+                        {
+                            // Đường dẫn tới file JSON chứa danh sách tài khoản của ông (ví dụ: accounts.json)
+                            string jsonFilePath = Path.Combine(baseDir, "accounts.json");
+
+                            // Gọi hàm cập nhật trực tiếp vào file JSON và giao diện DataGridView
+                            UpdateAccountCookieAndTokenJson(acc.User, newCookie, newToken, dgv_accounts, jsonFilePath);
+
+                            UpdateAccountStatus(acc.User, "Đã cập nhật Cookie mới vào file & danh sách");
+                        }
+                    }
                 }
                 else
                 {
@@ -1605,6 +1624,107 @@ namespace FB_Ultra
                     Console.WriteLine($"Lỗi chạy link {link}: {ex.Message}");
                 }
             }
+        }
+        public void UpdateAccountCookieAndTokenJson(string targetUser, string newCookie, string newToken, DataGridView dgv, string jsonFilePath)
+        {
+            try
+            {
+                if (!File.Exists(jsonFilePath)) return;
+
+                // 1. Đọc và Deserialize file JSON danh sách tài khoản
+                string jsonContent = File.ReadAllText(jsonFilePath);
+                var accounts = JsonConvert.DeserializeObject<List<AccountModel>>(jsonContent);
+
+                if (accounts == null) return;
+
+                bool isUpdated = false;
+                foreach (var acc in accounts)
+                {
+                    // So sánh theo UID (User)
+                    if (acc.User == targetUser)
+                    {
+                        if (!string.IsNullOrEmpty(newCookie)) acc.Cookie = newCookie;
+                        if (!string.IsNullOrEmpty(newToken)) acc.Token = newToken;
+                        isUpdated = true;
+                        break;
+                    }
+                }
+
+                // 2. Ghi đè lại file JSON nếu tìm thấy và cập nhật thành công
+                if (isUpdated)
+                {
+                    File.WriteAllText(jsonFilePath, JsonConvert.SerializeObject(accounts, Formatting.Indented));
+                }
+
+                // 3. Cập nhật trực tiếp trên DataGridView (Dùng Invoke an toàn cho đa luồng)
+                dgv.Invoke(new Action(() =>
+                {
+                    foreach (DataGridViewRow row in dgv_accounts.Rows) // Sửa tên biến dgv theo control thực tế của ông
+                    {
+                        // Kiểm tra tên cột trên DataGridView (Dựa theo ảnh là cột "User", "Cookie", "Token")
+                        if (row.Cells["col_user"]?.Value?.ToString() == targetUser)
+                        {
+                            if (!string.IsNullOrEmpty(newCookie))
+                                row.Cells["col_cookie"].Value = newCookie;
+
+                            if (!string.IsNullOrEmpty(newToken))
+                                row.Cells["col_token"].Value = newToken;
+
+                            break;
+                        }
+                    }
+                }));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi cập nhật JSON account: {ex.Message}");
+            }
+        }
+        private (string cookie, string token) GetNewCookieAndToken(ChromeDriver driver)
+        {
+            string cookieStr = "";
+            string tokenStr = "";
+
+            try
+            {
+                var cookies = driver.Manage().Cookies.AllCookies;
+                var cookieDict = cookies.Where(c => !string.IsNullOrEmpty(c.Name)).ToDictionary(c => c.Name, c => c.Value);
+
+                // Thứ tự ưu tiên đưa lên đầu cho đẹp và chuẩn form truyền thống
+                string[] keyPriorities = { "c_user", "xs", "fr", "datr", "sb", "presence", "wd", "ps_l", "ps_n" };
+
+                var orderedCookies = new List<string>();
+
+                // 1. Lấy các key ưu tiên trước theo đúng thứ tự
+                foreach (var key in keyPriorities)
+                {
+                    if (cookieDict.ContainsKey(key))
+                    {
+                        orderedCookies.Add($"{key}={cookieDict[key]}");
+                        cookieDict.Remove(key); // Đã lấy thì xóa khỏi dictionary
+                    }
+                }
+
+                // 2. Lấy nốt các key còn lại (nếu có phát sinh)
+                foreach (var kvp in cookieDict)
+                {
+                    orderedCookies.Add($"{kvp.Key}={kvp.Value}");
+                }
+
+                cookieStr = string.Join(";", orderedCookies);
+            }
+            catch { }
+
+            try
+            {
+                // Lấy Token tự động bằng Regex quét source trang
+                tokenStr = (string)((IJavaScriptExecutor)driver).ExecuteScript(
+                    "let tokens = document.documentElement.innerHTML.match(/EAAB[a-zA-Z0-9]+/); return tokens ? tokens[0] : '';"
+                );
+            }
+            catch { }
+
+            return (cookieStr, tokenStr);
         }
         // --- HÀM TÌM HANDLE CỬA SỔ THEO UNIQUE TITLE ---
         private IntPtr GetChromeHandleByUser(ChromeDriver driver, string user)
