@@ -24,6 +24,8 @@ namespace FB_Ultra
         public bool KetBanCheo { get; set; } = false;
         public bool NuoiNickNgauNhien { get; set; } = false;
         public bool likeCmtTheoLink_caiDatChung { get; set; } = false;
+        public bool Rip_caiDatChung { get; set; } = false;
+
 
         // Tương tác nuôi nick
         public bool LuotNewsfeed { get; set; }
@@ -86,5 +88,12 @@ namespace FB_Ultra
         public string textCmt_likeCmtTheoLink { get; set; } = "";
         public string link_likeCmtTheoLink { get; set; } = "";
         public string delay_likeCmtTheoLink { get; set; } = "";
+
+        // rip theo link
+        public bool ripNick { get; set; } = false;
+        public bool ripNhom { get; set; } = false;
+        public string linkRipNick { get; set; } = "";
+        public string linkRipNhom { get; set; } = "";
+
     }
 }

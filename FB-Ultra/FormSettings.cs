@@ -43,6 +43,7 @@ namespace FB_Ultra
             cb_tuDangBaiVaoNhom_caiDatChung.Checked = currentSettings.TuDongDangBaiVaoNhom;
             tb_henGio_caiDatChung.Text = currentSettings.HenGio;
             cb_likeCmtTheoLink_caiDatChung.Checked = currentSettings.likeCmtTheoLink_caiDatChung;
+            cb_Rip_caiDatChung.Checked = currentSettings.Rip_caiDatChung;
 
             // tự động đăng bài vào nhóm
             rdo_dangBaiThuong_tuDongDangBaiVaoNhom.Checked = currentSettings.DangThuong;
@@ -103,6 +104,12 @@ namespace FB_Ultra
             rtb_cmt_likeCmtTheoLink.Text = currentSettings.textCmt_likeCmtTheoLink;
             rtb_link_likeCmtTheoLink.Text = currentSettings.link_likeCmtTheoLink;
             tb_delay_likeCmtTheoLink.Text = currentSettings.delay_likeCmtTheoLink;
+
+            //rip theo link
+            cb_ripNick_rip.Checked = currentSettings.ripNick;
+            cb_ripNhom_rip.Checked = currentSettings.ripNhom;
+            rtb_linkRipNick_rip.Text = currentSettings.linkRipNick;
+            rtb_linkRipNhom_rip.Text= currentSettings.linkRipNhom;
 
             this.ActiveControl = btn_save;
         }
@@ -188,6 +195,13 @@ namespace FB_Ultra
             currentSettings.link_likeCmtTheoLink = rtb_link_likeCmtTheoLink.Text;
             currentSettings.delay_likeCmtTheoLink = tb_delay_likeCmtTheoLink.Text;
             currentSettings.likeCmtTheoLink_caiDatChung = cb_likeCmtTheoLink_caiDatChung.Checked;
+            currentSettings.Rip_caiDatChung = cb_Rip_caiDatChung.Checked;
+
+            //rip theo link
+            currentSettings.ripNick = cb_ripNick_rip.Checked;
+            currentSettings.ripNhom = cb_ripNhom_rip.Checked;
+            currentSettings.linkRipNick = rtb_linkRipNick_rip.Text;
+            currentSettings.linkRipNhom = rtb_linkRipNhom_rip.Text;
 
             // 2. Gọi hàm lưu xuống file JSON
             SettingsManager.SaveSettings(currentSettings);

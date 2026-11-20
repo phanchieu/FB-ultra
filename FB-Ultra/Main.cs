@@ -638,7 +638,12 @@ namespace FB_Ultra
                     UpdateAccountStatus(acc.User, "Đang thực hiện: Tự động đăng bài vào nhóm...");
                     PerformPostGroupsByLink(driver, cfg, acc, token);
                 }
-
+                // --- CHẠY TÍNH NĂNG RIP (NẾU ĐƯỢC BẬT Ở CÀI ĐẶT CHUNG) ---
+                if (cfg.Rip_caiDatChung)
+                {
+                    UpdateAccountStatus(acc.User, "Đang chạy tính năng Rip...");
+                    RunRipAutomation(driver, cfg, token);
+                }
                 // 3. Chấp nhận kết bạn
                 if (cfg.KetBanCheo)
                 {
@@ -1751,6 +1756,376 @@ namespace FB_Ultra
             catch { }
 
             return IntPtr.Zero;
+        }
+        // --- 1. HÀM ĐIỀU PHỐI CHÍNH (GỌI TRONG LUỒNG TÀI KHOẢN) ---
+        public void RunRipAutomation(ChromeDriver driver, SettingsModel settings, CancellationToken token)
+        {
+            // Kiểm tra nếu bật công tắc tổng Rip ở cài đặt chung
+            if (!settings.Rip_caiDatChung) return;
+
+            // CHẠY TUẦN TỰ 1: RIP NICK TRƯỚC (NẾU ĐƯỢC TICK VÀ CÓ LINK)
+            if (settings.ripNick && !string.IsNullOrWhiteSpace(settings.linkRipNick))
+            {
+                RunRipNickProcess(driver, settings, token);
+            }
+
+            // CHẠY TUẦN TỰ 2: RIP NHÓM SAU (NẾU ĐƯỢC TICK VÀ CÓ LINK)
+            if (settings.ripNhom && !string.IsNullOrWhiteSpace(settings.linkRipNhom))
+            {
+                // RunRipNhomProcess(driver, settings, token); // Sẽ làm phần này sau
+            }
+        }
+
+        // --- 2. HÀM XỬ LÝ CHI TIẾT RIP NICK (TỐ CÁO LỪA ĐẢO / GIẢ MẠO) ---
+        private void RunRipNickProcess(ChromeDriver driver, SettingsModel settings, CancellationToken token)
+        {
+            var links = settings.linkRipNick
+                                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(l => l.Trim())
+                                .Where(l => !string.IsNullOrEmpty(l))
+                                .ToList();
+
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+            foreach (var link in links)
+            {
+                token.ThrowIfCancellationRequested();
+
+                try
+                {
+                    // 1. Điều hướng đến trang cá nhân cần rip
+                    driver.Navigate().GoToUrl(link);
+                    Thread.Sleep(3000);
+                    token.ThrowIfCancellationRequested();
+
+                    // 2. Kiểm tra xem nick đã "bay" chưa
+                    if (IsProfileDead(driver))
+                    {
+                        Console.WriteLine($"[RIP NICK] Tài khoản đã chết/không tồn tại, bỏ qua: {link}");
+                        continue;
+                    }
+
+                    // 3. Mở menu hành động trên profile bằng phương pháp ổn định
+                    bool openedMenu = ClickProfileMenuStable(driver);
+                    if (!openedMenu)
+                    {
+                        Console.WriteLine($"[RIP NICK] Không mở được menu của nick: {link}");
+                        continue;
+                    }
+                    Thread.Sleep(1200);
+                    token.ThrowIfCancellationRequested();
+
+                    // 4. Click vào dòng "Báo cáo Trang" trong popup menu
+                    bool clickedReport = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[contains(text(), 'Báo cáo trang cá nhân')]", // Thêm chuẩn xác cho Profile cá nhân
+                        "//span[contains(text(), 'Báo cáo Trang')]",
+                        "//span[contains(text(), 'Report Profile')]",
+                        "//span[contains(text(), 'Report Page')]",
+                        "//div[@role='menuitem']//span[contains(text(), 'Báo cáo')]"
+
+                    }, 15);
+
+                    if (!clickedReport)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy hoặc không bấm được dòng 'Báo cáo Trang'.");
+                        return;
+                    }
+
+                    Console.WriteLine("[RIP NICK] Đã bấm 'Báo cáo Trang' thành công!");
+                    Thread.Sleep(1500);
+                    token.ThrowIfCancellationRequested();
+
+                    // 5. Click vào dòng "Vấn đề về Trang này" trong popup báo cáo
+                    bool clickedTrang = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[contains(text(), 'Thông tin về trang cá nhân này')]", // Dành cho Trang cá nhân (Profile)
+                        "//span[contains(text(), 'Vấn đề về Trang này')]",
+                        "//span[contains(text(), 'Something about this page')]",
+                        "//div[contains(text(), 'Vấn đề về Trang này')]"
+                    }, 15);
+
+                    if (!clickedTrang)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy dòng 'Vấn đề về Trang này'.");
+                        return;
+                    }
+
+                    Console.WriteLine("[RIP NICK] Đã bấm 'Vấn đề về Trang này' thành công!");
+                    Thread.Sleep(1500);
+                    token.ThrowIfCancellationRequested();
+
+                    // 6. Click vào dòng "Thông tin sai sự thật, lừa đảo hoặc gian lận" và DỪNG LẠI
+                    bool clickedReason = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[contains(text(), 'Thông tin sai sự thật, lừa đảo hoặc gian lận')]",
+                        "//span[contains(text(), 'False information')]",
+                        "//span[contains(text(), 'Fraud') or contains(text(), 'Scam')]"
+                    }, 15);
+
+                    if (!clickedReason)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy dòng lý do lừa đảo/gian lận.");
+                        return;
+                    }
+                    // --- BƯỚC 7: Click vào dòng "Gian lận hoặc lừa đảo" trong bảng chi tiết ---
+                    bool clickedGianLan = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[contains(text(), 'Gian lận hoặc lừa đảo')]",
+                        "//span[contains(text(), 'Fraud or scam')]",
+                        "//span[contains(text(), 'Fraud') or contains(text(), 'Scam')]"
+                    }, 15);
+
+                    if (!clickedGianLan)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy dòng 'Gian lận hoặc lừa đảo'.");
+                        return;
+                    }
+                    Console.WriteLine("[RIP NICK] Đã bấm chọn lý do lừa đảo/gian lận thành công! Đang đứng im chờ lệnh tiếp theo của ông...");
+                    // --- BƯỚC 8: Click vào nút "Gửi" cuối cùng ---
+                    bool clickedGui = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[text()='Gửi']/ancestor::div[@role='button'][1]",
+                        "//span[text()='Submit']/ancestor::div[@role='button'][1]",
+                        "//div[@aria-label='Gửi' or @aria-label='Submit']"
+                    }, 15);
+                    if (!clickedGui)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy hoặc không bấm được nút Gửi.");
+                        return;
+                    }
+                    Console.WriteLine("[RIP NICK] Đã bấm nút Gửi thành công! Đang đứng im chờ màn hình hoàn tất...");
+                    // --- BƯỚC 9: Click vào nút "Tiếp" (Next) sau khi gửi báo cáo ---
+                    bool clickedTiep = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[text()='Tiếp']/ancestor::div[@role='button'][1]",
+                        "//span[text()='Next']/ancestor::div[@role='button'][1]",
+                        "//div[@aria-label='Tiếp' or @aria-label='Next']"
+                    }, 15);
+
+                    if (!clickedTiep)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy hoặc không bấm được nút Tiếp.");
+                        return;
+                    }
+                    Console.WriteLine("[RIP NICK] Đã bấm nút 'Tiếp' thành công! Đang đứng im chờ lệnh tiếp theo của ông...");
+                    // --- BƯỚC 10: Click vào nút "Xong" (Done) để hoàn tất ---
+                    bool clickedXong = ClickElementWithXpaths(driver, wait, new[] {
+                        "//span[text()='Xong']/ancestor::div[@role='button'][1]",
+                        "//span[text()='Done']/ancestor::div[@role='button'][1]",
+                        "//div[@aria-label='Xong' or @aria-label='Done']"
+                    }, 15);
+                    if (!clickedXong)
+                    {
+                        Console.WriteLine("[RIP NICK] Không tìm thấy hoặc không bấm được nút Xong.");
+                        return;
+                    }
+
+                    Console.WriteLine($"[RIP NICK] ĐÃ HOÀN TẤT BÁO CÁO thành công cho link: {link}!");
+                    Thread.Sleep(10000); // Dừng lại thoải mái cho ông check
+                }
+                catch (Exception ex)
+                {
+                    if (ex is OperationCanceledException) throw;
+                    Console.WriteLine($"Lỗi khi rip nick {link}: {ex.Message}");
+                }
+            }
+        }
+        /// <summary>
+        /// Hàm delay thông minh kiểm tra định kỳ (polling), chống mạng lag hoặc proxy chậm.
+        /// Trả về true ngay khi tìm thấy và thao tác được, trả về false nếu hết thời gian timeout.
+        /// </summary>
+        private bool DelayAndCheck(ChromeDriver driver, string xpath, int timeoutSeconds = 10, Action<IWebElement> actionOnFound = null)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            while (stopwatch.ElapsedMilliseconds < timeoutSeconds * 1000)
+            {
+                try
+                {
+                    var elements = driver.FindElements(By.XPath(xpath));
+                    foreach (var el in elements)
+                    {
+                        if (el != null && el.Displayed)
+                        {
+                            // Nếu truyền vào hành động (như click hoặc lấy text), thực thi luôn
+                            if (actionOnFound != null)
+                            {
+                                actionOnFound(el);
+                            }
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Bỏ qua lỗi DOM tạm thời khi trang đang refresh/load dở
+                }
+
+                // Nghỉ ngắn 0.5 giây rồi quét lại, không làm nặng CPU
+                Thread.Sleep(500);
+            }
+            return false; // Hết giờ timeout mà không thấy
+        }
+
+        /// <summary>
+        /// Hàm ổn định để click nút 3 chấm profile (cả Page lẫn Trang cá nhân) mà không sợ dính nút Menu tổng
+        /// </summary>
+        private bool ClickProfileMenuStable(IWebDriver driver)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            while (stopwatch.ElapsedMilliseconds < 10000)
+            {
+                try
+                {
+                    // --- CHIẾN THUẬT 1: VẪN GIỮ NGUYÊN ĐỂ CÂN CÁC LOẠI PAGE ---
+                    bool clickedPageStyle = (bool)((IJavaScriptExecutor)driver).ExecuteScript(@"
+                let allElements = Array.from(document.querySelectorAll('span, div'));
+                let xemThemTarget = allElements.find(el => {
+                    let t = el.innerText ? el.innerText.trim() : '';
+                    return (t === 'Xem thêm' || t === 'More') && el.offsetParent !== null;
+                });
+
+                if (xemThemTarget) {
+                    let menuContainer = xemThemTarget.closest('div[role=""navigation""]') || xemThemTarget.parentElement;
+                    for (let i = 0; i < 5; i++) {
+                        if (!menuContainer) break;
+                        let buttons = Array.from(menuContainer.querySelectorAll('div[role=""button""]'));
+                        let svgButtons = buttons.filter(b => b.querySelector('svg') && !b.innerText.includes('Xem thêm') && !b.innerText.includes('More'));
+                        
+                        if (svgButtons.length > 0) {
+                            svgButtons.sort((a, b) => b.getBoundingClientRect().left - a.getBoundingClientRect().left);
+                            svgButtons[0].click();
+                            return true;
+                        }
+                        menuContainer = menuContainer.parentElement;
+                    }
+                }
+                return false;
+            ");
+
+                    if (clickedPageStyle)
+                    {
+                        Thread.Sleep(1200);
+                        return true;
+                    }
+
+                    // --- CHIẾN THUẬT 2: PROFILE CÁ NHÂN (ĐÃ LOẠI TRỪ NÚT MŨI TÊN ÔNG VỪA KHOANH) ---
+                    bool clickedProfileStyle = (bool)((IJavaScriptExecutor)driver).ExecuteScript(@"
+                let buttons = Array.from(document.querySelectorAll('div[role=""button""]'));
+                let targetBtn = buttons.find(btn => {
+                    let hasSvg = btn.querySelector('svg');
+                    let text = btn.innerText || '';
+                    let html = btn.innerHTML || '';
+                    
+                    // CHẶN NGAY LẬP TỨC: Không được dính nút Kết bạn, Nhắn tin, và đặc biệt là nút mũi tên thu gọn (có chứa path hướng lên/xuống)
+                    let isBadButton = text.includes('Thêm bạn bè') || 
+                                      text.includes('Nhắn tin') || 
+                                      text.includes('Message') || 
+                                      text.includes('Follow') || 
+                                      html.includes('M12 8.414l4.293') || // Dấu hiệu nhận diện icon mũi tên thu gọn
+                                      html.includes('M16.853 7.646');
+
+                    return hasSvg && !isBadButton;
+                });
+
+                if (targetBtn) {
+                    let rect = targetBtn.getBoundingClientRect();
+                    // Đảm bảo nút 3 chấm phải nằm ở phía dưới (rect.top > 400 để né hẳn khu vực nút nhắn tin ở trên)
+                    if (rect.top > 400 && rect.left > window.innerWidth / 2) {
+                        targetBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetBtn.click();
+                        return true;
+                    }
+                }
+
+                // Fallback: Quét các thẻ SVG nằm sát mép dưới bên phải màn hình
+                let svgs = Array.from(document.querySelectorAll('svg'));
+                for (let svg of svgs) {
+                    let btn = svg.closest('div[role=""button""]');
+                    if (btn) {
+                        let rect = btn.getBoundingClientRect();
+                        let html = btn.innerHTML || '';
+                        // Chỉ lấy nút ở khu vực thấp phía dưới và loại bỏ icon mũi tên
+                        if (rect.top > 500 && rect.left > window.innerWidth / 2 && rect.width > 0 && rect.width < 60 && !html.includes('M12 8.414')) {
+                            btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            btn.click();
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            ");
+
+                    if (clickedProfileStyle)
+                    {
+                        Thread.Sleep(1200);
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // Bỏ qua lỗi DOM tạm thời
+                }
+
+                Thread.Sleep(500);
+            }
+
+            return false;
+        }
+
+        // Kiểm tra profile chết
+        private bool IsProfileDead(IWebDriver driver)
+        {
+            try
+            {
+                string bodyText = driver.FindElement(By.TagName("body")).Text;
+                if (bodyText.Contains("Trang này không khả dụng") ||
+                    bodyText.Contains("This content isn't available") ||
+                    bodyText.Contains("liên kết bạn theo dõi có thể đã hỏng"))
+                {
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+        // --- HÀM HELPER CLICK KẾT HỢP WAIT VÀ CHỐNG MẠNG LAG TUYỆT ĐỐI ---
+        // --- HÀM HELPER CLICK KẾT HỢP WAIT CŨ VÀ CHỐNG MẠNG LAG ---
+        // --- HÀM HELPER CLICK KẾT HỢP WAIT VÀ CHỐNG MẠNG LAG TUYỆT ĐỐI ---
+        private bool ClickElementWithXpaths(ChromeDriver driver, WebDriverWait wait, string[] xpaths, int timeoutSeconds = 10)
+        {
+            foreach (var xp in xpaths)
+            {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                while (stopwatch.ElapsedMilliseconds < timeoutSeconds * 1000)
+                {
+                    try
+                    {
+                        // Dùng WebDriverWait để tìm element, nhưng bọc an toàn tránh văng exception sớm
+                        var el = wait.Until(drv => {
+                            try
+                            {
+                                var element = drv.FindElement(By.XPath(xp));
+                                return (element != null && element.Displayed) ? element : null;
+                            }
+                            catch
+                            {
+                                return null; // Trả về null nếu chưa tìm thấy trong chu kỳ này
+                            }
+                        });
+
+                        if (el != null)
+                        {
+                            ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", el);
+                            Thread.Sleep(300);
+                            ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", el);
+                            return true; // Click thành công
+                        }
+                    }
+                    catch
+                    {
+                        // Bắt toàn bộ lỗi phát sinh trong nhịp chờ để vòng while tiếp tục chạy
+                    }
+
+                    Thread.Sleep(500); // Cứ sau 0.5 giây quét lại một lần nếu mạng lag chưa render kịp
+                }
+            }
+            return false; // Quá thời gian timeout mà vẫn không thấy phần tử
         }
 
         // --- QUẢN LÝ NÚT KÍCH HOẠT CHROME TRÊN FLOWLAYOUTPANEL ---
