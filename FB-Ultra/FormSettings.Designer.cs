@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             groupBox2 = new GroupBox();
+            cb_Rip_caiDatChung = new CheckBox();
             cb_likeCmtTheoLink_caiDatChung = new CheckBox();
             label34 = new Label();
             tb_henGio_caiDatChung = new TextBox();
@@ -140,16 +141,25 @@
             cb_haha_likeCmtTheoLink = new CheckBox();
             cb_tim_likeCmtTheoLink = new CheckBox();
             cb_like_likeCmtTheoLink = new CheckBox();
+            groupBox7 = new GroupBox();
+            rtb_linkRipNick_rip = new RichTextBox();
+            rtb_linkRipNhom_rip = new RichTextBox();
+            cb_ripNhom_rip = new CheckBox();
+            textBox1 = new TextBox();
+            label37 = new Label();
+            cb_ripNick_rip = new CheckBox();
             groupBox2.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox4.SuspendLayout();
             groupBox5.SuspendLayout();
             groupBox6.SuspendLayout();
+            groupBox7.SuspendLayout();
             SuspendLayout();
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(cb_Rip_caiDatChung);
             groupBox2.Controls.Add(cb_likeCmtTheoLink_caiDatChung);
             groupBox2.Controls.Add(label34);
             groupBox2.Controls.Add(tb_henGio_caiDatChung);
@@ -184,10 +194,20 @@
             groupBox2.TabStop = false;
             groupBox2.Text = "Cài đặt chung";
             // 
+            // cb_Rip_caiDatChung
+            // 
+            cb_Rip_caiDatChung.AutoSize = true;
+            cb_Rip_caiDatChung.Location = new Point(294, 48);
+            cb_Rip_caiDatChung.Name = "cb_Rip_caiDatChung";
+            cb_Rip_caiDatChung.Size = new Size(43, 19);
+            cb_Rip_caiDatChung.TabIndex = 35;
+            cb_Rip_caiDatChung.Text = "Rip";
+            cb_Rip_caiDatChung.UseVisualStyleBackColor = true;
+            // 
             // cb_likeCmtTheoLink_caiDatChung
             // 
             cb_likeCmtTheoLink_caiDatChung.AutoSize = true;
-            cb_likeCmtTheoLink_caiDatChung.Location = new Point(279, 51);
+            cb_likeCmtTheoLink_caiDatChung.Location = new Point(168, 49);
             cb_likeCmtTheoLink_caiDatChung.Name = "cb_likeCmtTheoLink_caiDatChung";
             cb_likeCmtTheoLink_caiDatChung.Size = new Size(120, 19);
             cb_likeCmtTheoLink_caiDatChung.TabIndex = 34;
@@ -1121,7 +1141,7 @@
             // 
             // btn_save
             // 
-            btn_save.Location = new Point(837, 730);
+            btn_save.Location = new Point(1211, 730);
             btn_save.Name = "btn_save";
             btn_save.Size = new Size(89, 37);
             btn_save.TabIndex = 7;
@@ -1131,7 +1151,7 @@
             // 
             // btn_cancel
             // 
-            btn_cancel.Location = new Point(937, 730);
+            btn_cancel.Location = new Point(1311, 730);
             btn_cancel.Name = "btn_cancel";
             btn_cancel.Size = new Size(89, 37);
             btn_cancel.TabIndex = 8;
@@ -1154,7 +1174,7 @@
             groupBox6.Controls.Add(cb_like_likeCmtTheoLink);
             groupBox6.Location = new Point(475, 565);
             groupBox6.Name = "groupBox6";
-            groupBox6.Size = new Size(550, 159);
+            groupBox6.Size = new Size(550, 202);
             groupBox6.TabIndex = 9;
             groupBox6.TabStop = false;
             groupBox6.Text = "like,cmt theo link";
@@ -1198,7 +1218,7 @@
             // 
             rtb_link_likeCmtTheoLink.Location = new Point(288, 72);
             rtb_link_likeCmtTheoLink.Name = "rtb_link_likeCmtTheoLink";
-            rtb_link_likeCmtTheoLink.Size = new Size(257, 81);
+            rtb_link_likeCmtTheoLink.Size = new Size(257, 124);
             rtb_link_likeCmtTheoLink.TabIndex = 17;
             rtb_link_likeCmtTheoLink.Text = "";
             // 
@@ -1206,7 +1226,7 @@
             // 
             rtb_cmt_likeCmtTheoLink.Location = new Point(5, 72);
             rtb_cmt_likeCmtTheoLink.Name = "rtb_cmt_likeCmtTheoLink";
-            rtb_cmt_likeCmtTheoLink.Size = new Size(275, 81);
+            rtb_cmt_likeCmtTheoLink.Size = new Size(275, 124);
             rtb_cmt_likeCmtTheoLink.TabIndex = 16;
             rtb_cmt_likeCmtTheoLink.Text = "";
             // 
@@ -1260,11 +1280,79 @@
             cb_like_likeCmtTheoLink.Text = "like";
             cb_like_likeCmtTheoLink.UseVisualStyleBackColor = true;
             // 
+            // groupBox7
+            // 
+            groupBox7.Controls.Add(rtb_linkRipNick_rip);
+            groupBox7.Controls.Add(rtb_linkRipNhom_rip);
+            groupBox7.Controls.Add(cb_ripNhom_rip);
+            groupBox7.Controls.Add(textBox1);
+            groupBox7.Controls.Add(label37);
+            groupBox7.Controls.Add(cb_ripNick_rip);
+            groupBox7.Location = new Point(1032, 12);
+            groupBox7.Name = "groupBox7";
+            groupBox7.Size = new Size(368, 258);
+            groupBox7.TabIndex = 10;
+            groupBox7.TabStop = false;
+            groupBox7.Text = "Rip theo link";
+            // 
+            // rtb_linkRipNick_rip
+            // 
+            rtb_linkRipNick_rip.Location = new Point(6, 45);
+            rtb_linkRipNick_rip.Name = "rtb_linkRipNick_rip";
+            rtb_linkRipNick_rip.Size = new Size(356, 86);
+            rtb_linkRipNick_rip.TabIndex = 25;
+            rtb_linkRipNick_rip.Text = "";
+            // 
+            // rtb_linkRipNhom_rip
+            // 
+            rtb_linkRipNhom_rip.Location = new Point(6, 163);
+            rtb_linkRipNhom_rip.Name = "rtb_linkRipNhom_rip";
+            rtb_linkRipNhom_rip.Size = new Size(356, 86);
+            rtb_linkRipNhom_rip.TabIndex = 24;
+            rtb_linkRipNhom_rip.Text = "";
+            // 
+            // cb_ripNhom_rip
+            // 
+            cb_ripNhom_rip.AutoSize = true;
+            cb_ripNhom_rip.Location = new Point(6, 139);
+            cb_ripNhom_rip.Name = "cb_ripNhom_rip";
+            cb_ripNhom_rip.Size = new Size(78, 19);
+            cb_ripNhom_rip.TabIndex = 23;
+            cb_ripNhom_rip.Text = "Rip nhóm";
+            cb_ripNhom_rip.UseVisualStyleBackColor = true;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(492, 18);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(52, 23);
+            textBox1.TabIndex = 22;
+            // 
+            // label37
+            // 
+            label37.AutoSize = true;
+            label37.Location = new Point(447, 21);
+            label37.Name = "label37";
+            label37.Size = new Size(39, 15);
+            label37.TabIndex = 21;
+            label37.Text = "Delay:";
+            // 
+            // cb_ripNick_rip
+            // 
+            cb_ripNick_rip.AutoSize = true;
+            cb_ripNick_rip.Location = new Point(6, 22);
+            cb_ripNick_rip.Name = "cb_ripNick_rip";
+            cb_ripNick_rip.Size = new Size(68, 19);
+            cb_ripNick_rip.TabIndex = 11;
+            cb_ripNick_rip.Text = "Rip nick";
+            cb_ripNick_rip.UseVisualStyleBackColor = true;
+            // 
             // FormSettings
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1035, 779);
+            ClientSize = new Size(1412, 779);
+            Controls.Add(groupBox7);
             Controls.Add(groupBox6);
             Controls.Add(btn_cancel);
             Controls.Add(btn_save);
@@ -1290,6 +1378,8 @@
             groupBox5.PerformLayout();
             groupBox6.ResumeLayout(false);
             groupBox6.PerformLayout();
+            groupBox7.ResumeLayout(false);
+            groupBox7.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -1408,5 +1498,14 @@
         private TextBox tb_delay_likeCmtTheoLink;
         private Label label36;
         private CheckBox cb_likeCmtTheoLink_caiDatChung;
+        private GroupBox groupBox7;
+        private TextBox textBox1;
+        private Label label37;
+        private RichTextBox richTextBox2;
+        private CheckBox cb_ripNick_rip;
+        private RichTextBox rtb_linkRipNhom_rip;
+        private CheckBox cb_ripNhom_rip;
+        private CheckBox cb_Rip_caiDatChung;
+        private RichTextBox rtb_linkRipNick_rip;
     }
 }
